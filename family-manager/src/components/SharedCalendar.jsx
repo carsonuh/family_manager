@@ -118,7 +118,7 @@ class SharedCalendar extends Component {
                 name: this.state.usersName,
                 events: []
             }).then((docRef) => {
-                this.setState({fireDocId: docRef});
+                this.setState({fireDocId: docRef.id});
             })
             .catch((error) => {
                 console.log("error submitting first time user data" + error); 
