@@ -144,7 +144,7 @@ class SharedCalendar extends Component {
      */
     handleSelect = ({ start, end }) => {
         const title = window.prompt('Enter Event Name');
-        if (title)
+        if (title) {
             this.setState({
                 events: [
                     ...this.state.events,
@@ -155,7 +155,10 @@ class SharedCalendar extends Component {
                     },
                 ],
             });
-        this.updateStorage({title, start, end});
+            this.updateStorage({title, start, end});
+        } else {
+            console.log("User didn't complete event info. Doing nothing/")
+        }
     }
 
     render() {
