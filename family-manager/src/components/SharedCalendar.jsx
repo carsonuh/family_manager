@@ -1,8 +1,22 @@
 import React, { Component } from 'react';
+import {
+    MuiPickersUtilsProvider,
+    DatePicker,
+    TimePicker
+  } from '@material-ui/pickers';
+import Button from '@material-ui/core/Button';
+import TextField from '@material-ui/core/TextField';
+import MomentUtils from '@date-io/moment';
 import firebase from '../firebase.js';
 import { Calendar, momentLocalizer} from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+
+
+
+//TODO: On form for adding a user, specify if they are a child. If so, add that info to the DB
+//Under the child we can have a list of tasks
+
 
 //setup time localizer
 const localizer = momentLocalizer(moment);
@@ -12,6 +26,12 @@ const CalendarStyles = {
         height: "750px",
         width: "75%",
         margin: "0 auto"
+    },
+    editFormContainer: {
+        height: "500px",
+        width: "500px",
+        margin: "0 auto",
+        marginTop: "50px"
     }
 }
 
@@ -30,11 +50,16 @@ class SharedCalendar extends Component {
             userEmail: this.props.userEmail, 
             fireDocId: null,
             events: [],
+            showEditForm: false,
+            userEventTitle: "null",
+            userEventStart: "null",
+            userEventEnd: "null",
         };
         
         this.fetchUserData = this.fetchUserData.bind(this);
         this.checkIfUserExists = this.checkIfUserExists.bind(this);
         this.updateStorage = this.updateStorage.bind(this);
+        this.handleShow = this.handleShow.bind(this);
     }
 
     /**
@@ -91,13 +116,14 @@ class SharedCalendar extends Component {
                 .then((doc) => {
                     if(doc) {
                         let returnedData = doc.data().events;
-
+                        console.log(returnedData);
                         //Firebase returns time in the form of seconds from EPOCH
                         //toDate() converts it into a useable format
                         for(let i = 0; i < returnedData.length; i++) {
                             returnedData[i].start = returnedData[i].start.toDate();
                             returnedData[i].end = returnedData[i].end.toDate();
                         }
+                        
                         this.setState({events: returnedData});
                     } else {
                         console.log('Counldnt find user data');
@@ -138,6 +164,53 @@ class SharedCalendar extends Component {
     }
 
     /**
+     * Called when the user clicks update when editing an event,
+     * updates local array of events and sends an update to the DB
+     */
+    editEventInStorage = () => {
+        let updatedEvent = {
+            title: this.state.userEventTitle,
+            start: new Date(this.state.userEventStart),
+            end: new Date (this.state.userEventEnd)
+        }
+
+        //Store the events in a local array and then update the event that was modified
+        let eventArray = [...this.state.events];
+        let eventToRemove = eventArray.map((item) => item.title).indexOf(updatedEvent.title);
+        eventArray.splice(eventToRemove, 1);
+        eventArray.push(updatedEvent)
+        this.setState({events: eventArray});
+
+         const db = firebase.firestore();
+         db.collection("UserCalendarData").doc(this.state.fireDocId).update({
+             events: [...eventArray]
+         });
+    }
+
+    /**
+     * Callend when the user clicks delete when editing an event,
+     * updates local array of events and sends an update to the DB
+     */
+    deleteEventInStorage = () => {
+        let updatedEvent = {
+            title: this.state.userEventTitle,
+            start: new Date(this.state.userEventStart),
+            end: new Date (this.state.userEventEnd)
+        }
+
+        //Remove the selected event from the local event array, then update state with the new event array
+        let eventArray = [...this.state.events];
+        let eventToRemove = eventArray.map((item) => item.title).indexOf(updatedEvent.title);
+        eventArray.splice(eventToRemove, 1);
+        this.setState({events: eventArray});
+
+        const db = firebase.firestore();
+        db.collection("UserCalendarData").doc(this.state.fireDocId).update({
+            events: [...eventArray]
+        });
+    }
+
+    /**
      * Called when a date is selected on the calendar, 
      * Updates the components event list in state, calls a 
      * method to send the new event to the DB
@@ -161,8 +234,24 @@ class SharedCalendar extends Component {
         }
     }
 
+    handleClose = () => this.setState({showEditForm: false})
+
+    handleShow(event) {
+        this.setState({
+            userEventTitle: event.title.toString(), 
+            userEventStart: moment.utc(event.start).format('LLL').toString(), 
+            userEventEnd: moment.utc(event.end).format('LLL').toString(), 
+            showEditForm: true
+        });
+    }
+
+    handleStartDateChange = (e) => this.setState({userEventStart: e._d});
+    handleEndDateChange = (e) => this.setState({userEventEnd: e._d});
+    handleTitleChange = (e) => this.setState({userEventTitle: e.target.value});
+
     render() {
         return(
+        <div>
             <div style={CalendarStyles.calendarContainer}>
                 <Calendar
                     selectable
@@ -170,10 +259,58 @@ class SharedCalendar extends Component {
                     events={this.state.events}
                     startAccess="start"
                     endAccessor="end"
-                    onSelectEvent={event => alert(event.title)}
+                    onSelectEvent={event => this.handleShow(event)}
                     onSelectSlot={this.handleSelect}
                 />
             </div>
+            <div>
+                {this.state.showEditForm ? 
+                   <div style={CalendarStyles.editFormContainer}>
+                        Edit Form 
+                        <form>
+                            <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils}>
+                                <DatePicker 
+                                //   variant="inline"
+                                  format="MM/DD/YYYY"
+                                  margin="normal"
+                                  label="Start Date"
+                                  value={this.state.userEventStart}     
+                                  onChange={date => this.handleStartDateChange(date)}   
+                                />
+                                <DatePicker 
+                                //   variant="inline"
+                                  format="MM/DD/YYYY"
+                                  margin="normal"
+                                  label="End Date"
+                                  value={this.state.userEventEnd}
+                                  onChange={date => this.handleEndDateChange(date)}
+                                />
+                                <TimePicker
+                                  autoOk 
+                                  label="Start Time"
+                                  value={this.state.userEventStart}
+                                  onChange={time => this.handleStartDateChange(time)}
+                                />
+                                <TimePicker
+                                  autoOk 
+                                  label="End Time"
+                                  value={this.state.userEventEnd}
+                                  onChange={time => this.handleEndDateChange(time)}
+                                />
+                                <TextField label="Event Title" value={this.state.userEventTitle} onChange={title => this.handleTitleChange(title)} />
+                            </MuiPickersUtilsProvider>
+                            <Button variant="contained" color="primary" onClick={this.editEventInStorage}>Submit</Button>
+                            <Button variant="contained" color="primary" onClick={this.deleteEventInStorage}>Delete Event</Button>
+                            <Button variant="contained" color="primary" onClick={this.handleClose}>Close</Button>
+
+                        </form>
+                   </div>
+                   :
+                   <div></div> 
+                }
+            </div>
+        </div>
+
         )
     }
 }
