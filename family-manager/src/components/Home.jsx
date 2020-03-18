@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { auth, provider } from '../firebase.js';
 import SharedCalendar from './SharedCalendar.jsx';
 import EmptyCalendar from './EmptyCalendar.jsx';
+import ShoppingList from './ShoppingList.jsx';
 
 /**
  * Home Component, Displays the home page and calendar component
@@ -65,11 +66,12 @@ class Home extends Component {
                     <div>
                         <button onClick={this.logout}>Log Out</button>
                         <SharedCalendar userEmail={this.state.user.email} usersName={this.state.user.displayName}/>
+                        <ShoppingList userEmail={this.state.user.email}/>
                     </div>
                 :
                     <div>
                         <button onClick={this.login}>Log In</button>
-                        <EmptyCalendar />
+                        {/*<EmptyCalendar />*/}
                     </div>
                 }   
             </div>
