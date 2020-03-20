@@ -5,7 +5,7 @@ import "./shoppingList.css"
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import Box from '@material-ui/core/Box';
-import { CardHeader, IconButton, Tooltip } from "@material-ui/core";
+import { CardHeader, IconButton, Tooltip, CardActions, Button, TextField } from "@material-ui/core";
 import AddIcon from '@material-ui/icons/Add';
 
 class ShoppingList extends Component {
@@ -20,6 +20,9 @@ class ShoppingList extends Component {
         }
         this.fetchListData = this.fetchListData.bind(this);
         this.checkIfUserExists = this.checkIfUserExists.bind(this);
+        this.handleChange = this.handleChange.bind(this)
+        this.handleClick = this.handleClick.bind(this)
+        this.handleCBChange = this.handleCBChange.bind(this)
         //this.addItem = this.addItem.bind(this);
     }
 
@@ -108,59 +111,86 @@ class ShoppingList extends Component {
      */
     updateStorage(itemData) {
         const db = firebase.firestore();
-        const userRef = db.collection("TestShoppingList").doc(this.state.fireDocId).update({
+        const itemList = db.collection("TestShoppingList").doc(this.state.fireDocId).update({
             items: firebase.firestore.FieldValue.arrayUnion(itemData)
+            //items: itemData
         });
     }
-
+ 
     handleChange(e) {
         this.setState({newItem: e.target.value})
     }
 
-    /*
-
-    addItem(event) {
-        event.preventDefault()
-        const {name, value} = event.target;
-
-        if(value) {
-            this.setState({
-                items: [
-                    ...this.state.items,
-                    this.state.newItem,
-                ]
-            });
-            this.updateStorage(this.state.items);
-        }
-        else{
-            console.log("Empty field.")
-            alert("empty")
-        }
+    handleClick() {
         
+        if(this.state.newItem !== ""){
+            let i = {completed:false, item:this.state.newItem}
+            if(this.state.items.length > 0){
+                this.setState({
+                    items: [
+                        ...this.state.items,
+                        {
+                            i
+                        },
+                    ],
+                });
+                }else{
+                    this.setState({
+                        items: [
+                            {
+                                i
+                            },
+                        ],
+                    });
+                }
+             this.updateStorage(i);
+            }
+        else{
+            console.log("not updated")
+        }
+
+        this.setState({newItem: ""})
     }
 
-    */
+    
+    handleCBChange(itemName) {
+        this.setState(prevState => {
+            const updatedList = prevState.items.map(item => {
+                if (item.item === itemName) {
+                    item.completed = !item.completed
+                }
+                return item
+            })
+
+            return {
+                items: updatedList
+                
+            }
+        })
+
+        
+    }
+    
 
  
 
     render()
     {
-      
-        const itemCB = this.state.items.map(i => {
-            return  <DisplayItem item={i} />
-          });
-        return (
-            /*
-        <div className="list">
-            <h1>Shopping List</h1>
+        let itemCB;
+         itemCB = <p>No items</p>
 
-                {itemCB}
-            <form>
-                <input type="text" placeholder="Add Item" onChange={this.handleChange} />
-                <button onClick={this.addItem}>Go</button>
-            </form>
-        </div>
-        */
+        if(this.state.items.length > 0){
+              itemCB = this.state.items.map((item, index) => {
+                console.log(item.item, item.completed)
+                return  <DisplayItem item={item.item} completed={item.completed} id={index} key={index} handleChange={this.handleCBChange}  />
+              });
+        }
+        
+            
+    
+        
+        return (
+       
        <Box className="box">
            <Card className="card" variant="outlined">
                <CardHeader
@@ -177,6 +207,14 @@ class ShoppingList extends Component {
                 <CardContent>
                     {itemCB}
                 </CardContent>
+                <CardActions>
+        
+                    <TextField id="addItem" size="small" label="Add Item" variant="outlined" value={this.state.newItem} onChange={this.handleChange} />
+                    <Button onClick={this.handleClick} size="small">
+                        Go
+                    </Button>
+             
+                </CardActions>
             </Card>
        </Box>
        
