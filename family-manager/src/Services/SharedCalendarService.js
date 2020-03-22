@@ -79,13 +79,11 @@ export default class SharedCalendarService {
         //Check to see if the user is included in any shared calendar
          //Connect to the firebase DB
          const db = firebase.firestore();
-        
          let userType = 0;
          //Query the DB to see if the users email is present
          db.collection("UserCalendarData").where("sharedUsers", "array-contains", email)
              .get()
              .then((querySnapshot) => {
- 
                  //If the email isn't present, the user doesn't exist
                  if (querySnapshot.size === 0) {
                      userType = 1;
@@ -113,7 +111,8 @@ export default class SharedCalendarService {
                 name: user.userName,
                 masterUser: user.userEmail,
                 events: [],
-                sharedUsers: []
+                sharedUsers: [],
+                children: []
             }).then((docRef) => {
                 // this.setState({ fireDocId: docRef.id, masterUser: true });
                 callback({fireDocId: docRef.id, masterUser: true, type: 1})
@@ -145,6 +144,25 @@ export default class SharedCalendarService {
                     console.log("error fetching existing user data! " + error);
                 })
         }
+    }
+
+    checkIfUserIsChild(callback, userEmail) {
+
+        const db = firebase.firestore();
+        //Query the db to see if the email is in the children array
+        db.collection("UserCalendarData").where("children", "array-contains", userEmail)
+        .get()
+        .then((querySnapshot) => {
+
+            if (querySnapshot.size === 0) {
+                callback({isChild: false});
+            } else {
+                callback({isChild: true});
+            }
+        })
+        .catch((error) => {
+            console.log("Error Getting Documents! " + error);
+        });
     }
 
 }
