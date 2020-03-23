@@ -6,13 +6,15 @@ import {
 } from '@material-ui/pickers';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MomentUtils from '@date-io/moment';
 import firebase from '../firebase.js';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import SharedCalendarService from '../Services/SharedCalendarService.js';
-import momentTz from 'moment-timezone';
+import AddEvent from './AddEvent.jsx';
 
 
 //TODO: On form for adding a user, specify if they are a child. If so, add that info to the DB
@@ -59,7 +61,10 @@ class SharedCalendar extends Component {
             userEventTitle: "null",
             userEventStart: "null",
             userEventEnd: "null",
-            emailToShare: "null"
+            emailToShare: "null",
+            childChecked: false,
+            isChild: false,
+            showEventForm: false,
         };
 
         this.updateStorage = this.updateStorage.bind(this);
@@ -74,9 +79,8 @@ class SharedCalendar extends Component {
     componentDidMount() {
         //Upon loading the component, check to see if a user exists
         //Return data into the callback and execute a data update
-        // this.checkIfUserExists(this.fetchUserData)
-        // let userEmail = this.state.userEmail;
          this.sharedCalendarService.checkIfUserExists(this.userExists, this.state.userEmail);
+         this.sharedCalendarService.checkIfUserIsChild(this.isChild, this.state.userEmail);
     }
 
     userExists = (e, fireDocId) => {
@@ -110,14 +114,29 @@ class SharedCalendar extends Component {
         }
     }
 
+    isChild = (returnedData) => {
+        if (returnedData) {
+            this.setState({isChild: true});
+        } else {
+            this.setState({isChild: false});
+        }
+    }
+
     /**
      * When a new event is added send it to the DB 
      * @param {new event data} eventData 
      */
     updateStorage(eventData) {
+
+        let newEvent = {
+            title: eventData.title,
+            start: eventData.start,
+            end: eventData.end
+        }
+
         const db = firebase.firestore();
         const userRef = db.collection("UserCalendarData").doc(this.state.fireDocId).update({
-            events: firebase.firestore.FieldValue.arrayUnion(eventData)
+            events: firebase.firestore.FieldValue.arrayUnion(newEvent)
         });
     }
 
@@ -154,8 +173,8 @@ class SharedCalendar extends Component {
     deleteEventInStorage = () => {
         let updatedEvent = {
             title: this.state.userEventTitle,
-            start: new Date(this.state.userEventStart),
-            end: new Date(this.state.userEventEnd)
+            start: this.state.userEventStart,
+            end: this.state.userEventEnd
         }
 
         //Remove the selected event from the local event array, then update state with the new event array
@@ -177,32 +196,42 @@ class SharedCalendar extends Component {
      * Updates the components event list in state, calls a 
      * method to send the new event to the DB
      */
-    handleSelect = ({ start, end }) => {
-        const title = window.prompt('Enter Event Name');
-        if (title) {
-            this.setState({
-                events: [
-                    ...this.state.events,
-                    {
-                        title,
-                        start,
-                        end
-                    },
-                ],
-            });
-            this.updateStorage({ title, start, end });
-        } else {
-            console.log("User didn't complete event info. Doing nothing/")
-        }
+    
+    addEvent = (newEventData) => {
+        console.log("In shared calendar ")
+        console.log(newEventData);
+        const newEvent = {...newEventData};
+        let title = newEvent.eventTitle;
+        let start = new Date(newEvent.eventStartDate);
+        let end = new Date(newEvent.eventEndDate);
+        this.setState({
+             events: [
+                 ...this.state.events,
+                 {
+                     title,
+                     start,
+                     end,
+                 }
+             ]
+         }, () => console.log(this.state.events));
+         this.updateStorage({title, start, end});
     }
 
     shareCalendar = (e) => {
         e.preventDefault();
         const db = firebase.firestore();
         let emailToShare = this.state.emailToShare;
+        let isChild = this.state.childChecked;
         db.collection("UserCalendarData").doc(this.state.fireDocId).update({
             sharedUsers: firebase.firestore.FieldValue.arrayUnion(emailToShare)
         });
+
+        //If the added email was a child, add them to the child array in the db
+        if (isChild) {
+            db.collection("UserCalendarData").doc(this.state.fireDocId).update({
+                children: firebase.firestore.FieldValue.arrayUnion(emailToShare)
+            })
+        }
     }
 
     handleClose = () => this.setState({ showEditForm: false });
@@ -221,20 +250,25 @@ class SharedCalendar extends Component {
         let start = new Date(e);
         this.setState({ userEventStart: start }, () => {
             console.log(this.state.userEventStart);
-        });
-        
+        });  
     }
     handleEndDateChange = (e) => this.setState({ userEventEnd: e._d });
     handleTitleChange = (e) => this.setState({ userEventTitle: e.target.value });
 
     handleEmailShare = (e) => this.setState({ emailToShare: e.target.value })
 
+    handleChildChecked = () => this.setState({childChecked: !this.state.childChecked});
+
+
+
+    toggleAddEventForm = () => this.setState({showEventForm: !this.state.showEventForm});
+
     render() {
         return (
             <div>
                 <div style={CalendarStyles.calendarContainer}>
                     <Calendar
-                        selectable
+                        // selectable
                         localizer={localizer}
                         events={this.state.events}
                         startAccess="start"
@@ -244,9 +278,17 @@ class SharedCalendar extends Component {
                     />
                 </div>
                 <div>
-                    {this.state.showEditForm ?
+                    <Button variant="contained" color="primary" onClick={this.toggleAddEventForm}>Add Event</Button>
+                    {this.state.showEventForm && !this.state.isChild ?
+                         <AddEvent addEvent={(newEvent) => this.addEvent(newEvent)} toggleAddEvent={this.toggleAddEventForm}/>
+                     :
+                        <div></div>
+                    }
+                </div>
+                <div>
+                {this.state.showEditForm && !this.state.isChild ?
                         <div style={CalendarStyles.editFormContainer}>
-                            Edit Form
+                            Edit 
                         <form>
                             {console.log(moment(this.state.userEventStart))}
                                 <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils}>
@@ -289,6 +331,8 @@ class SharedCalendar extends Component {
                         :
                         <div></div>
                     }
+                    
+                  
                 </div>
                 <div>
                     {
@@ -302,6 +346,10 @@ class SharedCalendar extends Component {
                             <div>
                                 <TextField label="Enter Email to Share" onChange={emailToShare => this.handleEmailShare(emailToShare)} />
                                 <Button variant="contained" color="primary" onClick={this.shareCalendar}>Share</Button>
+                                <FormControlLabel 
+                                    control={<Checkbox checked={this.state.childChecked} onChange={this.handleChildChecked} name="check"/>}
+                                    label="Is this a child?"
+                                />
                             </div>
                             :
                             <div></div>
