@@ -112,7 +112,8 @@ export default class SharedCalendarService {
                 masterUser: user.userEmail,
                 events: [],
                 sharedUsers: [],
-                children: []
+                children: [],
+                shoppingList: []
             }).then((docRef) => {
                 // this.setState({ fireDocId: docRef.id, masterUser: true });
                 callback({fireDocId: docRef.id, masterUser: true, type: 1})
@@ -155,14 +156,13 @@ export default class SharedCalendarService {
         .then((querySnapshot) => {
 
             if (querySnapshot.size === 0) {
-                callback({isChild: false});
+                callback(false);
             } else {
-                callback({isChild: true});
+                callback(true);
             }
         })
         .catch((error) => {
             console.log("Error Getting Documents! " + error);
         });
     }
-
 }
