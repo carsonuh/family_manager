@@ -173,8 +173,8 @@ class ShoppingList extends Component {
 
 
     render() {
-        let itemCB;
 
+        let itemCB;
 
         if (this.state.items.length > 0) {
             itemCB = this.state.items.map((item) => {
@@ -191,14 +191,6 @@ class ShoppingList extends Component {
             <Box className="box">
                 <Card className="card" variant="outlined">
                     <CardHeader
-                        action={
-                            <Tooltip title="Add Item">
-                                <IconButton aria-label="add">
-                                    <AddIcon style={{ fill: "#4caf50" }} />
-                                </IconButton>
-                            </Tooltip>
-
-                        }
                         title="Shopping List"
                     />
                     <CardContent>
