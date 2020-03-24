@@ -33,78 +33,7 @@ class ShoppingList extends Component {
         this.getFireDocId(this.fetchListData);
     }
 
-    /**
-     * Checks to see if a signed in user has data in the DB
-     * Returns a boolean of the above condition into the callback
-     * @param {callback function} callback 
-     */
-    getFireDocId(callback) {
-        //Connect to the firebase DB
-        const db = firebase.firestore();
 
-        //Query the DB to see if the users email is present
-        db.collection("UserCalendarData").where("email", "==", this.state.userEmail)
-            .get()
-            .then((querySnapshot) => {
-                let userExists = false;
-
-                //If the email isn't present, the user doesn't exist
-                if (querySnapshot.size === 0) {
-                    userExists = false;
-                } else {
-                    //If the email does exist, update the firestore document ID in state
-                    this.setState({ fireDocId: querySnapshot.docs[0].id });
-                    userExists = true;
-                }
-                callback(userExists, this.fetchListData);
-            })
-            .catch((error) => {
-                console.log("Error Getting Documents! " + error);
-            });
-    }
-
-    /**
-     * Loads user data into the calendar via a DB call and a state update
-     * @param {whether a user exists} userExists 
-     */
-    fetchListData(userExists, callback) {
-
-        //If a user exists pull their event data from the DB
-        if (userExists) {
-            const db = firebase.firestore();
-            db.collection("UserCalendarData").doc(this.state.fireDocId)
-                .get()
-                .then((doc) => {
-                    if (doc) {
-                        let returnedData = doc.data().items;
-                        for (let i = 0; i < returnedData.length; i++) {
-                            returnedData[i].completed = returnedData[i].completed;
-                            returnedData[i].item = returnedData[i].item;
-                        }
-                        this.setState({ items: returnedData });
-                    } else {
-                        console.log('Counldnt find user data');
-                    }
-                })
-                .catch((error) => {
-                    console.log("error fetching existing user data! " + error);
-                })
-        } else {
-            //Check to see if the user is included in any shared calendar
-            //Connect to the firebase DB
-            const db = firebase.firestore();
-            //Query the DB to see if the users email is present
-            db.collection("UserCalendarData").where("sharedUsers", "array-contains", this.state.userEmail)
-                .get()
-                .then((querySnapshot) => {
-                    this.setState({ fireDocId: querySnapshot.docs[0].id });
-                    callback(true, null);
-                })
-                .catch((error) => {
-                    console.log("Error Getting Documents! " + error);
-                });
-        }
-    }
 
     /**
      * When a new event is added send it to the DB 
@@ -113,14 +42,14 @@ class ShoppingList extends Component {
     updateStorage(itemData) {
         const db = firebase.firestore();
         const itemList = db.collection("UserCalendarData").doc(this.state.fireDocId).update({
-            items: firebase.firestore.FieldValue.arrayUnion(itemData)
+            shoppingList: firebase.firestore.FieldValue.arrayUnion(itemData)
         });
     }
 
     deleteStorage(itemData) {
         const db = firebase.firestore();
         const itemList = db.collection("UserCalendarData").doc(this.state.fireDocId).update({
-            items: itemData
+            shoppingList: itemData
         });
     }
 
@@ -167,7 +96,7 @@ class ShoppingList extends Component {
         this.setState({ items: notCompleted });
         const db = firebase.firestore();
         db.collection("UserCalendarData").doc(this.state.fireDocId).update({
-            items: { ...notCompleted }
+            shoppingList: { ...notCompleted }
         });
     }
 
