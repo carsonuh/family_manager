@@ -64,7 +64,7 @@ function DisplayItem(props) {
           />}
           label={props.item}
          />
-        <Divider />
+        {/* <Divider /> */}
         </p>
         
     )
