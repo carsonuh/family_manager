@@ -11,6 +11,48 @@ function DisplayItem(props) {
         textDecoration: "line-through"
     }
     return(   
+      /*
+      props.completed==false ? (
+        <div>
+          <p>
+        <FormControlLabel
+          value={props.item}
+          control={
+          <Checkbox 
+            color="primary" 
+            checked={props.completed}
+            onChange={() => props.handleChange(props.item)}
+          />}
+          label={props.item}
+         />
+        <Divider />
+        </p>
+        </div>
+      ):
+
+      (
+        <div>
+          <p>COMPLETED</p>
+          <p style={completedStyle}>
+        <FormControlLabel
+          value={props.item}
+          control={
+          <Checkbox 
+            color="primary" 
+            checked={props.completed}
+            onChange={() => props.handleChange(props.item)}
+          />}
+          label={props.item}
+         />
+        <Divider />
+        </p>
+        </div>
+      )
+      
+      
+*/
+
+      
       <p style={props.completed ? completedStyle: null}>
         <FormControlLabel
           value={props.item}
@@ -24,6 +66,7 @@ function DisplayItem(props) {
          />
         <Divider />
         </p>
+        
     )
 }
 export default DisplayItem

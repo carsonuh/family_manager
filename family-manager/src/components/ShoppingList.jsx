@@ -23,7 +23,6 @@ class ShoppingList extends Component {
         this.handleChange = this.handleChange.bind(this)
         this.handleClick = this.handleClick.bind(this)
         this.handleCBChange = this.handleCBChange.bind(this)
-        //this.addItem = this.addItem.bind(this);
     }
 
     componentDidMount() {
@@ -77,7 +76,10 @@ class ShoppingList extends Component {
                 .then((doc) => {
                     if(doc) {
                         let returnedData = doc.data().items;
-                        console.log(returnedData);
+                        for(let i = 0; i < returnedData.length; i++) {
+                            returnedData[i].completed = returnedData[i].completed;
+                            returnedData[i].item = returnedData[i].item;
+                        }
                         this.setState({items: returnedData});
                     } else {
                         console.log('Counldnt find user data');
@@ -113,7 +115,13 @@ class ShoppingList extends Component {
         const db = firebase.firestore();
         const itemList = db.collection("TestShoppingList").doc(this.state.fireDocId).update({
             items: firebase.firestore.FieldValue.arrayUnion(itemData)
-            //items: itemData
+        });
+    }
+
+    deleteStorage(itemData) {
+        const db = firebase.firestore();
+        const itemList = db.collection("TestShoppingList").doc(this.state.fireDocId).update({
+            items: itemData
         });
     }
  
@@ -121,69 +129,66 @@ class ShoppingList extends Component {
         this.setState({newItem: e.target.value})
     }
 
-    handleClick() {
-        
-        if(this.state.newItem !== ""){
-            let i = {completed:false, item:this.state.newItem}
-            if(this.state.items.length > 0){
-                this.setState({
-                    items: [
-                        ...this.state.items,
-                        {
-                            i
-                        },
-                    ],
-                });
-                }else{
-                    this.setState({
-                        items: [
-                            {
-                                i
-                            },
-                        ],
-                    });
-                }
-             this.updateStorage(i);
-            }
-        else{
-            console.log("not updated")
-        }
+    handleClick(name) { 
+            let i = {completed:false, item:name}
 
-        this.setState({newItem: ""})
+            this.setState({newItem: ""})
+
+            this.state.items.length >0 ? 
+                this.setState({items: [...this.state.items,i,],})
+                    :
+                this.setState({items: [i]});
+
+            this.updateStorage(i);
+         return
     }
 
     
     handleCBChange(itemName) {
         this.setState(prevState => {
-            const updatedList = prevState.items.map(item => {
+            const updatedList = prevState.items.map((item, index) => {
                 if (item.item === itemName) {
                     item.completed = !item.completed
+                    setTimeout(() => { this.deleteItems(item.index); }, 270);
+                    
                 }
                 return item
             })
 
             return {
                 items: updatedList
-                
             }
-        })
-
-        
+        })  
     }
     
 
+    deleteItems(id){
+        let allItems = this.state.items;
+        console.log(allItems)
+        let notCompleted = allItems.filter((item) => item.completed === false);
+        this.setState({items:notCompleted});
+        console.log(this.state.items);
+        console.log("notcomplete: ",...notCompleted);
+        const db = firebase.firestore();
+        db.collection("TestShoppingList").doc(this.state.fireDocId).update({
+            items: {...notCompleted}
+        });
+    }
  
 
     render()
     {
         let itemCB;
-         itemCB = <p>No items</p>
+         
 
         if(this.state.items.length > 0){
-              itemCB = this.state.items.map((item, index) => {
-                console.log(item.item, item.completed)
-                return  <DisplayItem item={item.item} completed={item.completed} id={index} key={index} handleChange={this.handleCBChange}  />
+              itemCB = this.state.items.map((item) => {
+                console.log("ItemCB: ",this.state.items);
+                return  <DisplayItem item={item.item} completed={item.completed} handleChange={this.handleCBChange}  />
               });
+        }
+        else {
+            itemCB = <p>No items</p>
         }
         
             
@@ -210,14 +215,13 @@ class ShoppingList extends Component {
                 <CardActions>
         
                     <TextField id="addItem" size="small" label="Add Item" variant="outlined" value={this.state.newItem} onChange={this.handleChange} />
-                    <Button onClick={this.handleClick} size="small">
+                    <Button onClick={() => this.handleClick(this.state.newItem)} size="small">
                         Go
                     </Button>
              
                 </CardActions>
             </Card>
        </Box>
-       
     )
 }
 }
