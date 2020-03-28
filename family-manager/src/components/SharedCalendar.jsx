@@ -1,20 +1,15 @@
 import React, { Component } from 'react';
-import {
-    MuiPickersUtilsProvider,
-    DatePicker,
-    TimePicker
-} from '@material-ui/pickers';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import MomentUtils from '@date-io/moment';
 import firebase from '../firebase.js';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
-import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import SharedCalendarService from '../Services/SharedCalendarService.js';
 import AddEvent from './AddEvent.jsx';
+import EditEvent from './EditEvent.jsx';
+import moment from 'moment';
 
 
 //TODO: On form for adding a user, specify if they are a child. If so, add that info to the DB
@@ -61,6 +56,7 @@ class SharedCalendar extends Component {
             userEventTitle: "null",
             userEventStart: "null",
             userEventEnd: "null",
+            userEventId: 0,
             emailToShare: "null",
             childChecked: false,
             isChild: false,
@@ -131,7 +127,8 @@ class SharedCalendar extends Component {
         let newEvent = {
             title: eventData.title,
             start: eventData.start,
-            end: eventData.end
+            end: eventData.end,
+            id: eventData.id
         }
 
         const db = firebase.firestore();
@@ -144,11 +141,12 @@ class SharedCalendar extends Component {
      * Called when the user clicks update when editing an event,
      * updates local array of events and sends an update to the DB
      */
-    editEventInStorage = () => {
+    editEventInStorage = (editedEvent) => {
         let updatedEvent = {
-            title: this.state.userEventTitle,
-            start: new Date(this.state.userEventStart),
-            end: new Date(this.state.userEventEnd)
+            title: editedEvent.eventTitle,
+            start: new Date(editedEvent.eventStart),
+            end: new Date(editedEvent.eventEnd),
+            id: editedEvent.id
         }
 
         //Store the events in a local array and then update the event that was modified
@@ -170,11 +168,11 @@ class SharedCalendar extends Component {
      * Callend when the user clicks delete when editing an event,
      * updates local array of events and sends an update to the DB
      */
-    deleteEventInStorage = () => {
+    deleteEventInStorage = (eventToDelete) => {
         let updatedEvent = {
-            title: this.state.userEventTitle,
-            start: this.state.userEventStart,
-            end: this.state.userEventEnd
+            title: eventToDelete.eventTitle,
+            start: eventToDelete.eventStart,
+            end: eventToDelete.eventEnd
         }
 
         //Remove the selected event from the local event array, then update state with the new event array
@@ -198,12 +196,11 @@ class SharedCalendar extends Component {
      */
     
     addEvent = (newEventData) => {
-        console.log("In shared calendar ")
-        console.log(newEventData);
         const newEvent = {...newEventData};
         let title = newEvent.eventTitle;
         let start = new Date(newEvent.eventStartDate);
         let end = new Date(newEvent.eventEndDate);
+        let id = Math.floor(Math.random() * 1000000);
         this.setState({
              events: [
                  ...this.state.events,
@@ -211,10 +208,11 @@ class SharedCalendar extends Component {
                      title,
                      start,
                      end,
+                     id
                  }
              ]
          }, () => console.log(this.state.events));
-         this.updateStorage({title, start, end});
+         this.updateStorage({title, start, end, id});
     }
 
     shareCalendar = (e) => {
@@ -242,18 +240,12 @@ class SharedCalendar extends Component {
             userEventTitle: event.title.toString(),
             userEventStart: event.start.toString(),
             userEventEnd: event.end.toString(),
+            userEventId: event.id.toString(),
             showEditForm: true
         });
     }
 
-    handleStartDateChange = (e) => {
-        let start = new Date(e);
-        this.setState({ userEventStart: start }, () => {
-            console.log(this.state.userEventStart);
-        });  
-    }
-    handleEndDateChange = (e) => this.setState({ userEventEnd: e._d });
-    handleTitleChange = (e) => this.setState({ userEventTitle: e.target.value });
+
 
     handleEmailShare = (e) => this.setState({ emailToShare: e.target.value })
 
@@ -274,7 +266,6 @@ class SharedCalendar extends Component {
                         startAccess="start"
                         endAccessor="end"
                         onSelectEvent={event => this.handleShow(event)}
-                        onSelectSlot={this.handleSelect}
                     />
                 </div>
                 <div>
@@ -287,52 +278,23 @@ class SharedCalendar extends Component {
                 </div>
                 <div>
                 {this.state.showEditForm && !this.state.isChild ?
-                        <div style={CalendarStyles.editFormContainer}>
-                            Edit 
-                        <form>
-                            {console.log(moment(this.state.userEventStart))}
-                                <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils}>
-                                    <DatePicker
-                                        //   variant="inline"
-                                        format="MM/DD/YYYY"
-                                        margin="normal"
-                                        label="Start Date"
-                                        value={this.state.userEventStart}
-                                        onChange={date => this.handleStartDateChange(date)}
-                                    />
-                                    <DatePicker
-                                        //   variant="inline"
-                                        format="MM/DD/YYYY"
-                                        margin="normal"
-                                        label="End Date"
-                                        value={this.state.userEventEnd}
-                                        onChange={date => this.handleEndDateChange(date)}
-                                    />
-                                    <TimePicker
-                                        autoOk
-                                        label="Start Time"
-                                        value={this.state.userEventStart}
-                                        onChange={time => this.handleStartDateChange(time)}
-                                    />
-                                    <TimePicker
-                                        autoOk
-                                        label="End Time"
-                                        value={this.state.userEventEnd}
-                                        onChange={time => this.handleEndDateChange(time)}
-                                    />
-                                    <TextField label="Event Title" value={this.state.userEventTitle} onChange={title => this.handleTitleChange(title)} />
-                                </MuiPickersUtilsProvider>
-                                <Button variant="contained" color="primary" onClick={this.editEventInStorage}>Submit</Button>
-                                <Button variant="contained" color="primary" onClick={this.deleteEventInStorage}>Delete Event</Button>
-                                <Button variant="contained" color="primary" onClick={this.handleClose}>Close</Button>
-
-                            </form>
+                        <div>  
+                            <EditEvent 
+                                key={this.state.userEventId} 
+                                userEventData={{
+                                    eventStart: this.state.userEventStart, 
+                                    eventEnd: this.state.userEventEnd, 
+                                    eventTitle: this.state.userEventTitle,
+                                    id: this.state.userEventId
+                                }}
+                                editCallback={event => this.editEventInStorage(event)}
+                                deleteCallback={event => this.deleteEventInStorage(event)}
+                                closeCallback={this.handleClose}
+                            />
                         </div>
                         :
                         <div></div>
                     }
-                    
-                  
                 </div>
                 <div>
                     {
