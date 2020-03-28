@@ -70,8 +70,8 @@ class SharedCalendar extends Component {
     componentDidMount() {
         //Upon loading the component, check to see if a user exists
         //Return data into the callback and execute a data update
-         this.sharedCalendarService.checkIfUserExists(this.userExists, this.state.userEmail);
-         this.sharedCalendarService.checkIfUserIsChild(this.isChild, this.state.userEmail);
+        this.sharedCalendarService.checkIfUserExists(this.userExists, this.state.userEmail);
+        this.sharedCalendarService.checkIfUserIsChild(this.isChild, this.state.userEmail);
     }
 
     userExists = (e, fireDocId) => {
@@ -82,38 +82,38 @@ class SharedCalendar extends Component {
         } else {
             this.sharedCalendarService.fetchUserData(false, this.newUser, userEmail);
         }
-    } 
+    }
 
     loadData = (returnedUserData) => {
         let eventData = returnedUserData.returnedData.filter(event => event.visibility == "public" || event.visibility == this.state.userEmail);
-        this.setState({events: eventData, masterUser: returnedUserData.isMasterUser});
+        this.setState({ events: eventData, masterUser: returnedUserData.isMasterUser });
     }
 
     newUser = (userType, fireDocId) => {
         if (userType == 1) {
             alert("Welcome, Start by adding some data to the calendar");
-            this.sharedCalendarService.loadNewOrSharedUser(userType, this.loadData2, {userEmail: this.state.userEmail, userName: this.state.usersName});
-        } 
+            this.sharedCalendarService.loadNewOrSharedUser(userType, this.loadData2, { userEmail: this.state.userEmail, userName: this.state.usersName });
+        }
         else if (userType == 2) {
-            this.setState({fireDocId: fireDocId});
+            this.setState({ fireDocId: fireDocId });
             this.sharedCalendarService.loadNewOrSharedUser(userType, this.loadData2, null, this.state.fireDocId)
         }
     }
 
     loadData2 = (returnedUserData) => {
         if (returnedUserData.type == 1) {
-            this.setState({fireDocId: returnedUserData.fireDocId, masterUser: true});
+            this.setState({ fireDocId: returnedUserData.fireDocId, masterUser: true });
         } else {
             let eventData = returnedUserData.filter(event => event.visibility == "public" || event.visibility == this.state.userEmail);
-            this.setState({events: eventData});
+            this.setState({ events: eventData });
         }
     }
 
     isChild = (returnedData) => {
         if (returnedData) {
-            this.setState({isChild: true});
+            this.setState({ isChild: true });
         } else {
-            this.setState({isChild: false});
+            this.setState({ isChild: false });
         }
     }
 
@@ -154,14 +154,17 @@ class SharedCalendar extends Component {
 
         //Store the events in a local array and then update the event that was modified
         let eventArray = [...this.state.events];
-        let eventToRemove = eventArray.map((item) => item.id).indexOf(updatedEvent.id);
-        eventArray.splice(eventToRemove, 1);
-        eventArray.push(updatedEvent)
-        this.setState({ events: eventArray });
-
+        let eventArrayFiltered = eventArray.filter(event => event.id != updatedEvent.id);
+        let eventToRemove = eventArray.find(event => event.id == updatedEvent.id);
+        eventArrayFiltered.push(updatedEvent)
+        this.setState({ events: eventArrayFiltered });
         const db = firebase.firestore();
         db.collection("UserCalendarData").doc(this.state.fireDocId).update({
-            events: [...eventArray]
+            events: firebase.firestore.FieldValue.arrayRemove(eventToRemove)
+        });
+
+        db.collection("UserCalendarData").doc(this.state.fireDocId).update({
+            events: firebase.firestore.FieldValue.arrayUnion(updatedEvent)
         });
 
         this.setState({ showEditForm: false });
@@ -172,22 +175,22 @@ class SharedCalendar extends Component {
      * updates local array of events and sends an update to the DB
      */
     deleteEventInStorage = (eventToDelete) => {
-        console.log('here')
         let updatedEvent = {
             title: eventToDelete.eventTitle,
             start: eventToDelete.eventStart,
-            end: eventToDelete.eventEnd
+            end: eventToDelete.eventEnd,
+            id: eventToDelete.id
         }
 
         //Remove the selected event from the local event array, then update state with the new event array
         let eventArray = [...this.state.events];
-        let eventToRemove = eventArray.map((item) => item.title).indexOf(updatedEvent.title);
+        let eventToRemove = eventArray.find(event => event.id == updatedEvent.id);
         eventArray.splice(eventToRemove, 1);
         this.setState({ events: eventArray });
 
         const db = firebase.firestore();
         db.collection("UserCalendarData").doc(this.state.fireDocId).update({
-            events: [...eventArray]
+            events: firebase.firestore.FieldValue.arrayRemove(eventToRemove)
         });
 
         this.setState({ showEditForm: false });
@@ -198,9 +201,9 @@ class SharedCalendar extends Component {
      * Updates the components event list in state, calls a 
      * method to send the new event to the DB
      */
-    
+
     addEvent = (newEventData) => {
-        const newEvent = {...newEventData};
+        const newEvent = { ...newEventData };
         let title = newEvent.eventTitle;
         let start = new Date(newEvent.eventStartDate);
         let end = new Date(newEvent.eventEndDate);
@@ -208,19 +211,19 @@ class SharedCalendar extends Component {
         let owner = newEventData.owner;
         let id = Math.floor(Math.random() * 1000000);
         this.setState({
-             events: [
-                 ...this.state.events,
-                 {
-                     title,
-                     start,
-                     end,
-                     id,
-                     visibility,
-                     owner
-                 }
-             ]
-         }, () => console.log(this.state.events));
-         this.updateStorage({title, start, end, id, visibility, owner});
+            events: [
+                ...this.state.events,
+                {
+                    title,
+                    start,
+                    end,
+                    id,
+                    visibility,
+                    owner
+                }
+            ]
+        }, () => console.log(this.state.events));
+        this.updateStorage({ title, start, end, id, visibility, owner });
     }
 
     shareCalendar = (e) => {
@@ -240,9 +243,6 @@ class SharedCalendar extends Component {
         }
     }
 
-    handleClose = () => this.setState({ showEditForm: false });
-    toggleShareField = () => this.setState({ showShareField: !this.state.showShareField });
-
     handleShow(event) {
         this.setState({
             userEventTitle: event.title.toString(),
@@ -255,15 +255,11 @@ class SharedCalendar extends Component {
         });
     }
 
-
-
+    handleClose = () => this.setState({ showEditForm: false });
+    toggleShareField = () => this.setState({ showShareField: !this.state.showShareField });
     handleEmailShare = (e) => this.setState({ emailToShare: e.target.value })
-
-    handleChildChecked = () => this.setState({childChecked: !this.state.childChecked});
-
-
-
-    toggleAddEventForm = () => this.setState({showEventForm: !this.state.showEventForm});
+    handleChildChecked = () => this.setState({ childChecked: !this.state.childChecked });
+    toggleAddEventForm = () => this.setState({ showEventForm: !this.state.showEventForm });
 
     render() {
         return (
@@ -281,23 +277,23 @@ class SharedCalendar extends Component {
                 <div>
                     <Button variant="contained" color="primary" onClick={this.toggleAddEventForm}>Add Event</Button>
                     {this.state.showEventForm && !this.state.isChild ?
-                         <AddEvent 
-                            addEvent={(newEvent) => this.addEvent(newEvent)} 
+                        <AddEvent
+                            addEvent={(newEvent) => this.addEvent(newEvent)}
                             toggleAddEvent={this.toggleAddEventForm}
                             userEmail={this.state.userEmail}
                         />
-                     :
+                        :
                         <div></div>
                     }
                 </div>
                 <div>
-                {this.state.showEditForm && !this.state.isChild ?
-                        <div>  
-                            <EditEvent 
-                                key={this.state.userEventId} 
+                    {this.state.showEditForm && !this.state.isChild ?
+                        <div>
+                            <EditEvent
+                                key={this.state.userEventId}
                                 userEventData={{
-                                    eventStart: this.state.userEventStart, 
-                                    eventEnd: this.state.userEventEnd, 
+                                    eventStart: this.state.userEventStart,
+                                    eventEnd: this.state.userEventEnd,
                                     eventTitle: this.state.userEventTitle,
                                     id: this.state.userEventId,
                                     owner: this.state.userEventOwner,
@@ -325,8 +321,8 @@ class SharedCalendar extends Component {
                             <div>
                                 <TextField label="Enter Email to Share" onChange={emailToShare => this.handleEmailShare(emailToShare)} />
                                 <Button variant="contained" color="primary" onClick={this.shareCalendar}>Share</Button>
-                                <FormControlLabel 
-                                    control={<Checkbox checked={this.state.childChecked} onChange={this.handleChildChecked} name="check"/>}
+                                <FormControlLabel
+                                    control={<Checkbox checked={this.state.childChecked} onChange={this.handleChildChecked} name="check" />}
                                     label="Is this a child?"
                                 />
                             </div>
