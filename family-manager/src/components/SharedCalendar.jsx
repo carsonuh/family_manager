@@ -11,11 +11,6 @@ import AddEvent from './AddEvent.jsx';
 import EditEvent from './EditEvent.jsx';
 import moment from 'moment';
 
-
-//TODO: On form for adding a user, specify if they are a child. If so, add that info to the DB
-//Under the child we can have a list of tasks
-
-
 //setup time localizer
 const localizer = momentLocalizer(moment);
 
@@ -32,8 +27,6 @@ const CalendarStyles = {
         marginTop: "50px"
     }
 }
-
-
 
 /**
  * This is the shared calendar that displays user data
@@ -57,6 +50,8 @@ class SharedCalendar extends Component {
             userEventStart: "null",
             userEventEnd: "null",
             userEventId: 0,
+            userEventOwner: "null",
+            userEventVisbility: "null",
             emailToShare: "null",
             childChecked: false,
             isChild: false,
@@ -89,7 +84,10 @@ class SharedCalendar extends Component {
         }
     } 
 
-    loadData = (returnedUserData) => this.setState({events: returnedUserData.returnedData, masterUser: returnedUserData.isMasterUser});
+    loadData = (returnedUserData) => {
+        let eventData = returnedUserData.returnedData.filter(event => event.visibility == "public" || event.visibility == this.state.userEmail);
+        this.setState({events: eventData, masterUser: returnedUserData.isMasterUser});
+    }
 
     newUser = (userType, fireDocId) => {
         if (userType == 1) {
@@ -106,7 +104,8 @@ class SharedCalendar extends Component {
         if (returnedUserData.type == 1) {
             this.setState({fireDocId: returnedUserData.fireDocId, masterUser: true});
         } else {
-            this.setState({events: returnedUserData});
+            let eventData = returnedUserData.filter(event => event.visibility == "public" || event.visibility == this.state.userEmail);
+            this.setState({events: eventData});
         }
     }
 
@@ -128,7 +127,9 @@ class SharedCalendar extends Component {
             title: eventData.title,
             start: eventData.start,
             end: eventData.end,
-            id: eventData.id
+            id: eventData.id,
+            visibility: eventData.visibility,
+            owner: eventData.owner
         }
 
         const db = firebase.firestore();
@@ -146,12 +147,14 @@ class SharedCalendar extends Component {
             title: editedEvent.eventTitle,
             start: new Date(editedEvent.eventStart),
             end: new Date(editedEvent.eventEnd),
-            id: editedEvent.id
+            id: editedEvent.id,
+            owner: editedEvent.owner,
+            visibility: editedEvent.visibility
         }
 
         //Store the events in a local array and then update the event that was modified
         let eventArray = [...this.state.events];
-        let eventToRemove = eventArray.map((item) => item.title).indexOf(updatedEvent.title);
+        let eventToRemove = eventArray.map((item) => item.id).indexOf(updatedEvent.id);
         eventArray.splice(eventToRemove, 1);
         eventArray.push(updatedEvent)
         this.setState({ events: eventArray });
@@ -169,6 +172,7 @@ class SharedCalendar extends Component {
      * updates local array of events and sends an update to the DB
      */
     deleteEventInStorage = (eventToDelete) => {
+        console.log('here')
         let updatedEvent = {
             title: eventToDelete.eventTitle,
             start: eventToDelete.eventStart,
@@ -200,6 +204,8 @@ class SharedCalendar extends Component {
         let title = newEvent.eventTitle;
         let start = new Date(newEvent.eventStartDate);
         let end = new Date(newEvent.eventEndDate);
+        let visibility = newEventData.visibility;
+        let owner = newEventData.owner;
         let id = Math.floor(Math.random() * 1000000);
         this.setState({
              events: [
@@ -208,11 +214,13 @@ class SharedCalendar extends Component {
                      title,
                      start,
                      end,
-                     id
+                     id,
+                     visibility,
+                     owner
                  }
              ]
          }, () => console.log(this.state.events));
-         this.updateStorage({title, start, end, id});
+         this.updateStorage({title, start, end, id, visibility, owner});
     }
 
     shareCalendar = (e) => {
@@ -241,6 +249,8 @@ class SharedCalendar extends Component {
             userEventStart: event.start.toString(),
             userEventEnd: event.end.toString(),
             userEventId: event.id.toString(),
+            userEventOwner: event.owner.toString(),
+            userEventVisbility: event.visibility.toString(),
             showEditForm: true
         });
     }
@@ -271,7 +281,11 @@ class SharedCalendar extends Component {
                 <div>
                     <Button variant="contained" color="primary" onClick={this.toggleAddEventForm}>Add Event</Button>
                     {this.state.showEventForm && !this.state.isChild ?
-                         <AddEvent addEvent={(newEvent) => this.addEvent(newEvent)} toggleAddEvent={this.toggleAddEventForm}/>
+                         <AddEvent 
+                            addEvent={(newEvent) => this.addEvent(newEvent)} 
+                            toggleAddEvent={this.toggleAddEventForm}
+                            userEmail={this.state.userEmail}
+                        />
                      :
                         <div></div>
                     }
@@ -285,11 +299,14 @@ class SharedCalendar extends Component {
                                     eventStart: this.state.userEventStart, 
                                     eventEnd: this.state.userEventEnd, 
                                     eventTitle: this.state.userEventTitle,
-                                    id: this.state.userEventId
+                                    id: this.state.userEventId,
+                                    owner: this.state.userEventOwner,
+                                    visibility: this.state.userEventVisbility
                                 }}
                                 editCallback={event => this.editEventInStorage(event)}
                                 deleteCallback={event => this.deleteEventInStorage(event)}
                                 closeCallback={this.handleClose}
+                                userEmail={this.state.userEmail}
                             />
                         </div>
                         :

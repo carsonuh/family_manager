@@ -1,71 +1,79 @@
-import React, { Fragment } from 'react';
+import React from 'react';
+import MomentUtils from '@date-io/moment';
+import moment from 'moment';
+import Button from '@material-ui/core/Button';
+import TextField from '@material-ui/core/TextField';
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormControl from '@material-ui/core/FormControl';
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
+import InputLabel from '@material-ui/core/InputLabel';
+import NotificationService from '../Services/NotificationService';
 import {
     MuiPickersUtilsProvider,
     DatePicker,
     TimePicker
 } from '@material-ui/pickers';
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
-import Checkbox from '@material-ui/core/Checkbox';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import MomentUtils from '@date-io/moment';
-import moment from 'moment';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import FormControl from '@material-ui/core/FormControl';
-import Select from '@material-ui/core/Select';
-import NotificationService from '../Services/NotificationService';
 
+const CalendarStyles = {
+    editFormContainer: {
+        height: "500px",
+        width: "500px",
+        margin: "0 auto",
+        marginTop: "50px"
+    }
+}
 
 let tempStyles = {
     minWidth: 120
 }
 
-function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
+function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback, userEmail }) {
 
-    let [newEvent, setNewEvent] = React.useState({ eventTitle: "My New Event", eventStartDate: null, eventEndDate: null, visibility: "", owner: ""});
-    let [reminderData, setReminderData] = React.useState({ phoneNumber: "", email: "", eventTitle: "", reminderDateOffset: "", eventDate: ""});
+    
+
+    let [userEvent, setUserEvent] = React.useState({ ...userEventData });
     let [reminderChecked, setReminderChecked] = React.useState(false);
-    let [privateChecked, setPrivateChecked] = React.useState(false);
+    let [reminderData, setReminderData] = React.useState({ phoneNumber: "", email: "", eventTitle: "", reminderDateOffset: "", eventDate: "" });
+    let [privateChecked, setPrivateChecked] = React.useState(userEmail == userEventData.visibility);
 
-
-    let handleNewEventTitle = (e) => {
-        let newEventDetails = { ...newEvent };
-        newEventDetails.eventTitle = e.target.value;
-        setNewEvent(newEventDetails);
+    const handleStartDateChange = (e) => {
+        let start = new Date(e);
+        let userEventData = { ...userEvent };
+        userEventData.eventStart = start;
+        setUserEvent(userEventData);
     }
 
-    let handleNewEventStart = (e) => {
-        let newEventDetails = { ...newEvent };
-        newEventDetails.eventStartDate = e;
-        setNewEvent(newEventDetails);
+    const handleEndDateChange = (e) => {
+        let userEventData = { ...userEvent };
+        userEventData.eventEnd = e._d;
+        setUserEvent(userEventData);
     }
 
-    let handleNewEventEnd = (e) => {
-        let newEventDetails = { ...newEvent };
-        newEventDetails.eventEndDate = e;
-        setNewEvent(newEventDetails);
+    const handleTitleChange = (e) => {
+        let userEventData = { ...userEvent };
+        userEventData.eventTitle = e.target.value;
+        setUserEvent(userEventData);
     }
 
-    let createAndSendEvent = () => {
-        let newEventData = { ...newEvent };
-        let reminderDataToSend = { ...reminderData }; 
-        let tempDate = newEvent.eventStartDate;
-        let finalDate = moment(tempDate).format('MM/DD/YYYY') + " At " + moment(tempDate).format('h:hh A');
+    const editEvent = () => {
+        let updatedEvent = { ...userEvent };
 
-        reminderDataToSend.eventTitle = newEventData.eventTitle;
+        let reminderDataToSend = { ...reminderData };
+        let tempDate = updatedEvent.eventStart;
+        let finalDate = moment(tempDate).format('MM/DD/YYYY') + " At " + moment(tempDate).format('h:mm A');
+        reminderDataToSend.eventTitle = updatedEvent.eventTitle;
         reminderDataToSend.eventDate = finalDate;
 
-        if (privateChecked) {
-            newEventData.visibility = userEmail;
-        } else (
-            newEventData.visibility = "public"
-        )
-
-        newEventData.owner = userEmail;
         
-        addEvent(newEventData);
-        //Check if remdinder was checked and the data is filled then call the reminder service
+        if (privateChecked) {
+            console.log('here')
+            updatedEvent.visibility = userEmail;
+        } else {
+            updatedEvent.visibility = "public"
+        }
+
         if (reminderChecked) {
             if (reminderData.email.length > 0 && reminderData.phoneNumber.length > 0 && reminderData.reminderDateOffset) {
                 NotificationService.forwardNotificationSignup(reminderDataToSend);
@@ -80,12 +88,20 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
                 console.log('got nothing');
             }
         }
+        editCallback(updatedEvent);
     }
 
-    let togglePrivateChecked = () => {
-        setPrivateChecked(!privateChecked);
+    const deleteEvent = () => {
+        let updatedEvent = { ...userEvent };
+        deleteCallback(updatedEvent);
     }
-    
+
+    const handleClose = () => {
+        closeCallback();
+    }
+
+    let togglePrivateChecked = () => setPrivateChecked(!privateChecked);
+
     let toggleRemindersChecked = () => {
         setReminderChecked(!reminderChecked);
     }
@@ -107,9 +123,10 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
         reminderD.reminderDateOffset = handleTimeOffset.target.value;
         setReminderData(reminderD);
     };
-    
+
     return (
-        <div>
+        <div style={CalendarStyles.editFormContainer}>
+            Edit
             <form>
                 <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils}>
                     <DatePicker
@@ -117,41 +134,51 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
                         format="MM/DD/YYYY"
                         margin="normal"
                         label="Start Date"
-                        value={newEvent.eventStartDate}
-                        onChange={date => handleNewEventStart(date)}
+                        value={userEvent.eventStart}
+                        onChange={date => handleStartDateChange(date)}
                     />
                     <DatePicker
                         //   variant="inline"
                         format="MM/DD/YYYY"
                         margin="normal"
                         label="End Date"
-                        value={newEvent.eventEndDate}
-                        onChange={date => handleNewEventEnd(date)}
+                        value={userEvent.eventEnd}
+                        onChange={date => handleEndDateChange(date)}
                     />
                     <TimePicker
                         autoOk
                         label="Start Time"
-                        value={newEvent.eventStartDate}
-                        onChange={time => handleNewEventStart(time)}
+                        value={userEvent.eventStart}
+                        onChange={time => handleStartDateChange(time)}
                     />
                     <TimePicker
                         autoOk
                         label="End Time"
-                        value={newEvent.eventEndDate}
-                        onChange={time => handleNewEventEnd(time)}
+                        value={userEvent.eventEnd}
+                        onChange={time => handleEndDateChange(time)}
                     />
-                    <TextField label="Event Title" value={newEvent.eventTitle} onChange={title => handleNewEventTitle(title)} />
+                    <TextField label="Event Title" value={userEvent.eventTitle} onChange={title => handleTitleChange(title)} />
                 </MuiPickersUtilsProvider>
+                <Button variant="contained" color="primary" onClick={editEvent}>Submit</Button>
+                <Button variant="contained" color="primary" onClick={deleteEvent}>Delete Event</Button>
+                <Button variant="contained" color="primary" onClick={handleClose}>Close</Button>
                 <FormControlLabel
                     control={<Checkbox name="check" onClick={toggleRemindersChecked} checked={reminderChecked} />}
                     label="Signup For Reminders"
+                    
                 />
-                <FormControlLabel
-                    control={<Checkbox name="check" onClick={togglePrivateChecked} checked={privateChecked} />}
-                    label="Make this Event Private"
-                />
-                <Button variant="contained" color="primary" onClick={createAndSendEvent}>Submit</Button>
-                <Button variant="contained" color="primary" onClick={toggleAddEvent}>Close</Button>
+                {
+                    userEmail == userEvent.owner ?
+                        <div>
+                            <FormControlLabel
+                                control={<Checkbox name="check" onClick={togglePrivateChecked} checked={privateChecked} />}
+                                label="Make this Event Private"
+                            />
+                        </div>
+                    :
+                        <div></div>
+                }
+
             </form>
             <div>
                 {
@@ -177,9 +204,8 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
                         <div></div>
                 }
             </div>
-
         </div>
     )
 }
 
-export default AddEvent;
+export default EditEvent;
