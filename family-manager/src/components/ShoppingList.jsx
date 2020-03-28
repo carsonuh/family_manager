@@ -76,7 +76,7 @@ class ShoppingList extends Component {
                 .get()
                 .then((doc) => {
                     if (doc) {
-                        let returnedData = doc.data().items;
+                        let returnedData = doc.data().shoppingList;
                         for (let i = 0; i < returnedData.length; i++) {
                             returnedData[i].completed = returnedData[i].completed;
                             returnedData[i].item = returnedData[i].item;
@@ -113,14 +113,14 @@ class ShoppingList extends Component {
     updateStorage(itemData) {
         const db = firebase.firestore();
         const itemList = db.collection("UserCalendarData").doc(this.state.fireDocId).update({
-            items: firebase.firestore.FieldValue.arrayUnion(itemData)
+            shoppingList: firebase.firestore.FieldValue.arrayUnion(itemData)
         });
     }
 
     deleteStorage(itemData) {
         const db = firebase.firestore();
         const itemList = db.collection("UserCalendarData").doc(this.state.fireDocId).update({
-            items: itemData
+            shoppingList: itemData
         });
     }
 
@@ -167,14 +167,14 @@ class ShoppingList extends Component {
         this.setState({ items: notCompleted });
         const db = firebase.firestore();
         db.collection("UserCalendarData").doc(this.state.fireDocId).update({
-            items: { ...notCompleted }
+            shoppingList: { ...notCompleted }
         });
     }
 
 
     render() {
-        let itemCB;
 
+        let itemCB;
 
         if (this.state.items.length > 0) {
             itemCB = this.state.items.map((item) => {
@@ -191,14 +191,6 @@ class ShoppingList extends Component {
             <Box className="box">
                 <Card className="card" variant="outlined">
                     <CardHeader
-                        action={
-                            <Tooltip title="Add Item">
-                                <IconButton aria-label="add">
-                                    <AddIcon style={{ fill: "#4caf50" }} />
-                                </IconButton>
-                            </Tooltip>
-
-                        }
                         title="Shopping List"
                     />
                     <CardContent>
