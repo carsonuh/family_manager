@@ -61,7 +61,7 @@ export default class SharedCalendarService {
 
                         console.log(returnedData)
 
-                        let isMasterUser = doc.data().masterUser == email ? true : false;
+                        let isMasterUser = doc.data().masterUser === email ? true : false;
                         callback({returnedData, isMasterUser});
                     } else {
                         console.log('Counldnt find user data');
@@ -100,7 +100,7 @@ export default class SharedCalendarService {
     }
 
     loadNewOrSharedUser(userType, callback, user, fireDocId) {
-        if (userType == 1) {
+        if (userType === 1) {
             //This block is executed if it's a users first time logging in
 
             //Create an entry in the DB for the new user, update the doc ref

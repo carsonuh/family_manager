@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import SharedCalendarService from "../Services/SharedCalendarService"
 import ChildrenTasksService from '../Services/ChildrenTasksService';
 import firebase from "../firebase"
+import "./shoppingList.css"
 import moment from 'moment';
 import MomentUtils from '@date-io/moment';
 import { momentLocalizer } from 'react-big-calendar';
@@ -21,8 +22,20 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
-    Button
+    Button,
+    List,
+    Box,
+    Card,
+    CardHeader,
+    CardContent,
+    IconButton
   } from '@material-ui/core';
+
+  import ChildTaskList from "./ChildTaskList"
+  import ChildTaskListParentView from "./ChildTaskListParentView"
+  import AddCircleIcon from '@material-ui/icons/AddCircle';
+  import { green } from '@material-ui/core/colors';
+  import Tooltip from '@material-ui/core/Tooltip';
 
 function ChildrenTasks(props){
 
@@ -32,12 +45,12 @@ function ChildrenTasks(props){
     const [childrenTasks, setChildTask] = useState([]);
     const [isMasterUser, setMasterUser] = useState(false);
     const [isChildUser, setChildUser] = useState(false);
-
+    const [myChores, setMyChores] = useState([]);
 
     const [formChore, setFormChore] = useState("");
     const [formDate, setFormDate] = useState(moment().format('ll'));
     const [formAssigned, setFormAssigned] = useState("default");
-    const [open, setOpen] = React.useState(false);
+    const [open, setOpen] = useState(false);
 
         const handleClickOpen = () => {
             setOpen(true);
@@ -61,8 +74,21 @@ function ChildrenTasks(props){
         if (e) {
             setFireDocID(fireDocId );
             childService.fetchUserData(true, email, loadData,fireDocId);
+            console.log("User exists");
         } 
+        else{
+            verifyUser.checkSharedUser(isSharedUser, email)
+            console.log("Checking if shared user.....")
+        }
     } 
+
+    let isSharedUser = (type, fireDocId) => {
+        if(type===2){
+            console.log("User is a shared user");
+            setFireDocID(fireDocId);
+            childService.fetchUserData(true, email, loadData, fireDocId);
+        }
+    }
 
     let loadData = (info) => {
         setChildTask(info.childrenTasks);
@@ -100,7 +126,9 @@ function ChildrenTasks(props){
         else{
             console.log("Form has some missing data")
         }
-
+        setFormChore("");
+        setFormAssigned("default")
+        setFormDate(moment().format('ll'))
         handleClose()
         return
     }
@@ -113,19 +141,84 @@ function ChildrenTasks(props){
     }
     
 
+    let deleteTask = (chore, child, date) => {
+        const db = firebase.firestore();
+         db.collection("UserCalendarData").doc(fireDocId).update({
+            childrenTasks: firebase.firestore.FieldValue.arrayRemove({chore: chore, email: child, date: date})
+        });
+
+        return setChildTask(childrenTasks.filter(task => task.chore !== chore))
+    }
+
+
     let l = children.map(i => listchild({name: i}));
+    let childList;
+    
+    childList = childrenTasks.map( i => {
+        return <ChildTaskListParentView chore={i.chore} child={i.email} date={i.date} onDeleteClick={deleteTask} />
+    })
+
+    if (isChildUser){
+        let mine = childrenTasks.filter(chore => chore.email === email)
+        childList = mine.map( i => {
+            return <ChildTaskList chore={i.chore} child={i.email} date={i.date} onDeleteClick={deleteTask} />
+        })
+    }
+  
+    
     return(
   
 
         
 
         <div>
-            <h1>Children Tasks</h1>
+            { isMasterUser ? 
+           (   
+             
+                <Box className="box">
+                <Card className="cardChore" variant="outlined">
+                    <CardHeader
+                        title="Chore List"
 
+                        action={
+                        <Tooltip title="New Chore" aria-label="add">
+                            <IconButton aria-label="settings" onClick={handleClickOpen} style={{ color: green[500] }}>
+                              <AddCircleIcon />
+                            </IconButton>
+                        </Tooltip>
+                        }
+                    />
+                <CardContent><List>{childList}</List></CardContent>
+                    </Card>
+                 </Box>
+                
+           )
+                :
+                null
+            }
 
-            <Button variant="outlined" color="primary" onClick={handleClickOpen}>
-        Assign Chore
-      </Button>
+            {
+                isChildUser ? 
+             
+               ( 
+               
+               
+               <Box className="box">
+                <Card className="card" variant="outlined">
+                    <CardHeader
+                        title="Your Chores"
+                    />
+                    <CardContent><List>{childList}</List></CardContent>
+                    </Card>
+            </Box>
+               
+               
+               
+                )
+                
+                : null
+            }
+      
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
                 <DialogTitle id="form-dialog-title">Assign Chore</DialogTitle>
                     <DialogContent>
@@ -175,21 +268,6 @@ function ChildrenTasks(props){
                     </Button>
                 </DialogActions>
             </Dialog>
-
-
-
-
-
-        
-
-            <br />
-            <br />
-
-            <p>Email: {email}</p>
-            <p>Children: {children.map(i => <span>{i}, </span>)}</p>
-            <div>Children: {childrenTasks.map(i => <span>{i.chore}, </span>)}</div>
-            <p>isMasterUser: {isMasterUser ? "Yes" : "No" }</p>
-            <p>isChildUser: {isChildUser ? "Yes" : "No" }</p>
         </div>
 
         

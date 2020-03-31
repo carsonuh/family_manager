@@ -4,6 +4,7 @@ import SharedCalendar from './SharedCalendar.jsx';
 import EmptyCalendar from './EmptyCalendar.jsx';
 import ShoppingList from './ShoppingList.jsx';
 import ChildrenTasks from './ChildrenTasks.jsx';
+import Grid from '@material-ui/core/Grid';
 
 /**
  * Home Component, Displays the home page and calendar component
@@ -67,8 +68,19 @@ class Home extends Component {
                     <div>
                         <button onClick={this.logout}>Log Out</button>
                         <SharedCalendar userEmail={this.state.user.email} usersName={this.state.user.displayName}/>
-                        <ShoppingList userEmail={this.state.user.email}/>
-                        <ChildrenTasks userEmail={this.state.user.email}/>
+
+                        <Grid container spacing={2}>
+                            <Grid item xs={2}>
+                                <ShoppingList userEmail={this.state.user.email}/>
+                            </Grid>
+
+                            <Grid item xs={2}>
+                            <ChildrenTasks userEmail={this.state.user.email}/>
+                            </Grid>
+                        
+                        
+                        </Grid>
+                        
                     </div>
                 :
                     <div>
