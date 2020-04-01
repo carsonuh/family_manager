@@ -1,82 +1,85 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import { auth, provider } from '../firebase.js';
 import SharedCalendar from './SharedCalendar.jsx';
 import EmptyCalendar from './EmptyCalendar.jsx';
 import ShoppingList from './ShoppingList.jsx';
+import ChildrenTasks from './ChildrenTasks.jsx';
+import Grid from '@material-ui/core/Grid';
+import Head from "./NavBar.jsx"
+
 
 /**
  * Home Component, Displays the home page and calendar component
  */
-class Home extends Component {
-    constructor(props) {
-        super(props)
-        this.state = {
-            user: null
-        }
+    function Home() {
 
-        //Bind class functions
-        this.login = this.login.bind(this);
-        this.logout = this.logout.bind(this);
-    }
+        const [user, setUser] = useState(null);
+    
 
     /**
      * Checks the users previous session state to see if they were logged in
      * If they were, keep them logged in
      */
-    componentDidMount() {
+    useEffect(() => {
         auth.onAuthStateChanged((user) => {
             if (user) {
-                this.setState({user});
+                setUser(user);
             }
         });
-    }
+    }, []);
 
     /**
      * Executes firebase auth to launch google signin
      */
-    login() {
-        auth.signInWithPopup(provider)
+    function login() {
+        return auth.signInWithPopup(provider)
             .then((result) => {
-                const user = result.user;
-                this.setState({
-                    user
-                });
+               setUser(result.user);
             });
     }
 
     /**
      * Executes a logout with firebase auth
      */
-    logout() {
-        auth.signOut()
+    let logout = () => {
+       return auth.signOut()
             .then(() => {
-                this.setState({
-                    user: null
-                });
+               setUser(null);
             });
     }
 
     /**
      * Renders a blank calendar when not logged in, renders calendar with user data when logged in
      */
-    render() {
         return (
             <div>
-                {this.state.user ?
+                
+                {user ?
                     <div>
-                        <button onClick={this.logout}>Log Out</button>
-                        <SharedCalendar userEmail={this.state.user.email} usersName={this.state.user.displayName}/>
-                        <ShoppingList userEmail={this.state.user.email}/>
+                        <Head loginAction={logout} login={true} />
+                        {/* <button onClick={this.logout}>Log Out</button> */}
+                        <SharedCalendar userEmail={user.email} usersName={user.displayName}/>
+
+                        <Grid container spacing={2}>
+                            <Grid item xs={4}>
+                                <ShoppingList userEmail={user.email}/>
+                            </Grid>
+
+                            <Grid item xs={4}>
+                            <ChildrenTasks userEmail={user.email}/>
+                            </Grid>
+                        </Grid>
+                        
                     </div>
                 :
                     <div>
-                        <button onClick={this.login}>Log In</button>
+                        <Head loginAction={login} login={false} />
+                        {/* <button onClick={() => login()}>Log In</button> */}
                         {/*<EmptyCalendar />*/}
                     </div>
                 }   
             </div>
         )
-    }
 }
 
 export default Home;

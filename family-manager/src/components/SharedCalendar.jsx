@@ -8,6 +8,7 @@ import { Calendar, momentLocalizer } from 'react-big-calendar';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import SharedCalendarService from '../Services/SharedCalendarService.js';
 import AddEvent from './AddEvent.jsx';
+import Settings from "./Settings"
 import EditEvent from './EditEvent.jsx';
 import moment from 'moment';
 
@@ -312,8 +313,12 @@ class SharedCalendar extends Component {
                 <div>
                     {
                         this.state.masterUser ?
+
+                            <div>
                             <button variant="contained" color="primary" onClick={this.toggleShareField}>Share Calendar</button>
-                            :
+                            <Settings userEmail={this.state.userEmail} fbID={this.state.fireDocId}/>
+                            </div>
+                            : 
                             <div></div>
                     }
                     {
