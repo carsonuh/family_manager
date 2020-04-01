@@ -1,5 +1,4 @@
 import React, {useState, useEffect} from "react"
-import SharedCalendarService from "../Services/SharedCalendarService"
 import SettingService from "../Services/SettingService"
 import SettingsDialog from "./SettingsDialog"
 import firebase from "../firebase"
@@ -8,17 +7,17 @@ import firebase from "../firebase"
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
-import ListItemText from '@material-ui/core/ListItemText';
-//import ListSubheader from '@material-ui/core/ListSubheader';
 import List from '@material-ui/core/List';
-import Divider from '@material-ui/core/Divider';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
 import CloseIcon from '@material-ui/icons/Close';
-import Slide from '@material-ui/core/Slide';
-import { ListSubheader } from "@material-ui/core"
+import { 
+  ListSubheader, DialogTitle, DialogContent, DialogActions,
+  TextField, FormControlLabel, Switch
+
+} from "@material-ui/core"
 import AddIcon from '@material-ui/icons/Add';
 import { green } from '@material-ui/core/colors';
 
@@ -39,23 +38,34 @@ const useStyles = makeStyles((theme) => ({
       marginLeft: theme.spacing(2),
       flex: 1,
     },
+
+    switch: {
+      marginLeft: theme.spacing(2),
+      marginTop: theme.spacing(1),
+    },
   }));
 
 function Settings(props) {
 
     //const[masterUser, setMasterUser] = useState("")
     const [email] = useState(props.userEmail)
-    const [fireDocId, setFireDocID] = useState(null);
+    const [fireDocId] = useState(props.fbID);
     const [sharedUsers, setSharedUsers] = useState([])
     const [childUsers, setChildUsers] = useState([])
     const [isMasterUser, setMasterUser] = useState(false)
     const [childTasks, setChildTasks] = useState([])
-    let verifyUser = new SharedCalendarService()
+
+    const [open, setOpen] = useState(false);
+
+    const [newUserEmail, setUserEmail] = useState("");
+    const [newUserIsChild, setNewUserIsChild] = useState(false)
+
+
     let getSettings = new SettingService()
 
 
     const classes = useStyles();
-    const [open, setOpen] = React.useState(false);
+    const [newUserOpen, setNewUserOpen] = useState(false);
   
     const handleClickOpen = () => {
       setOpen(true);
@@ -65,18 +75,20 @@ function Settings(props) {
       setOpen(false);
     };
 
+
+    const handleUserClickOpen = () => {
+      setNewUserOpen(true);
+  };
+
+  const handleUserClose = () => {
+    setNewUserOpen(false);
+  };
+
+
     useEffect(() => {
-        verifyUser.checkIfUserExists(userExists, email);
+        getSettings.fetchUserData(true, email, loadData,fireDocId);
       },[]);
 
-       // if user exists update firedoc id and load the data from the db
-    let userExists = (e, fireDocId) => {
-        if (e) {
-            setFireDocID(fireDocId );
-            getSettings.fetchUserData(true, email, loadData,fireDocId);
-            console.log("User exists");
-        } 
-    }
 
     // callback: load data from database
     let loadData = (info) => {
@@ -123,6 +135,33 @@ function Settings(props) {
       }
   }
 
+
+  function processNewUser(e) {
+
+    if(newUserEmail !== ""){
+      const db = firebase.firestore();
+
+      db.collection("UserCalendarData").doc(fireDocId).update({
+        sharedUsers: firebase.firestore.FieldValue.arrayUnion(newUserEmail)
+      });
+  
+      setSharedUsers([...sharedUsers, newUserEmail]);
+  
+      if(newUserIsChild){
+        db.collection("UserCalendarData").doc(fireDocId).update({
+          children: firebase.firestore.FieldValue.arrayUnion(newUserEmail)
+        });
+  
+        setChildUsers([...childUsers, newUserEmail]);
+      }
+    }
+
+    setNewUserIsChild(false)
+    setUserEmail("")
+    setNewUserOpen(false)
+    return
+  }
+
     // gets the difference between sharedUsers[] and childUsers[]
   
    let sUsers = sharedUsers.filter(x => !childUsers.includes(x)).concat(childUsers.filter(x => !sharedUsers.includes(x)));
@@ -158,7 +197,7 @@ function Settings(props) {
 
         <List>
           <ListSubheader className={classes.subTitle}>Users 
-          <IconButton edge="end" aria-label="delete" style={{ color: green[500] }} >
+          <IconButton edge="end" aria-label="delete" onClick={() => setNewUserOpen(true)}  style={{ color: green[500] }} >
                       <AddIcon />
                   </IconButton>
                 </ListSubheader>
@@ -168,6 +207,29 @@ function Settings(props) {
         {child}
 
         </List>
+
+
+        <Dialog open={newUserOpen} onClose={() => setNewUserOpen(false)} aria-labelledby="form-dialog-title">
+            <DialogTitle id="form-dialog-title">New User</DialogTitle>
+                <DialogContent>
+                    <TextField label="Email" variant="outlined" name="email" value={newUserEmail} onChange={(e) => setUserEmail(e.target.value)}></TextField>
+                    <FormControlLabel
+                  control={<Switch checked={newUserIsChild} className={classes.switch} onChange={() => setNewUserIsChild(!newUserIsChild)} name="checkedA" />}
+                label= "Child"
+                  />
+                </DialogContent>
+
+            <DialogActions>
+                <Button onClick={() => setNewUserOpen(false)} color="primary">
+                    Cancel
+                </Button>
+                <Button color="primary" onClick={(e) => processNewUser(e)}>
+                    Submit
+                </Button>
+            </DialogActions>
+      </Dialog>
+
+
         
 
       </Dialog>

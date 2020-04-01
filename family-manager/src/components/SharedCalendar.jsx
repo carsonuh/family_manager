@@ -341,9 +341,9 @@ class SharedCalendar extends Component {
 
                             <div>
                             <button variant="contained" color="primary" onClick={this.toggleShareField}>Share Calendar</button>
-                            <Settings userEmail={this.state.userEmail} />
+                            <Settings userEmail={this.state.userEmail} fbID={this.state.fireDocId}/>
                             </div>
-                            :
+                            : 
                             <div></div>
                     }
                     {
