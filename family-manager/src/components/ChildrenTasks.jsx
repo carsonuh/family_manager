@@ -1,34 +1,21 @@
-import React, {useState} from 'react';
-import { useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import SharedCalendarService from "../Services/SharedCalendarService"
 import ChildrenTasksService from '../Services/ChildrenTasksService';
 import firebase from "../firebase"
 import "./shoppingList.css"
 import moment from 'moment';
 import MomentUtils from '@date-io/moment';
-import { momentLocalizer } from 'react-big-calendar';
+
 import {
     MuiPickersUtilsProvider,
     KeyboardDatePicker
   } from '@material-ui/pickers';
 
 import {
-   
-    TextField,
-    FormControl,
-    Select,
-    InputLabel,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    Button,
-    List,
-    Box,
-    Card,
-    CardHeader,
-    CardContent,
-    IconButton
+    TextField, FormControl, Select,
+    InputLabel, Dialog, DialogActions,
+    DialogContent, DialogTitle, Button,
+    List, Box, Card, CardHeader, CardContent, IconButton
   } from '@material-ui/core';
 
   import ChildTaskList from "./ChildTaskList"
@@ -36,6 +23,7 @@ import {
   import AddCircleIcon from '@material-ui/icons/AddCircle';
   import { green } from '@material-ui/core/colors';
   import Tooltip from '@material-ui/core/Tooltip';
+
 
 function ChildrenTasks(props){
 
@@ -46,42 +34,39 @@ function ChildrenTasks(props){
     const [isMasterUser, setMasterUser] = useState(false);
     const [isChildUser, setChildUser] = useState(false);
     const [myChores, setMyChores] = useState([]);
-
     const [formChore, setFormChore] = useState("");
     const [formDate, setFormDate] = useState(moment().format('ll'));
     const [formAssigned, setFormAssigned] = useState("default");
     const [open, setOpen] = useState(false);
 
-        const handleClickOpen = () => {
-            setOpen(true);
-        };
-
-        const handleClose = () => {
-            setOpen(false);
-        };
-        
 
     let verifyUser = new SharedCalendarService()
     let childService = new ChildrenTasksService();
 
+    // When page loads check if user exists, check if user is a child
     useEffect(() => {
         verifyUser.checkIfUserExists(userExists, email);
         verifyUser.checkIfUserIsChild(childStatus, email);
       },[]);
 
     
+    // if user exists update firedoc id and load the data from the db
     let userExists = (e, fireDocId) => {
         if (e) {
             setFireDocID(fireDocId );
             childService.fetchUserData(true, email, loadData,fireDocId);
             console.log("User exists");
         } 
+
+        // if user does not exists check if they are a shared user 
         else{
             verifyUser.checkSharedUser(isSharedUser, email)
             console.log("Checking if shared user.....")
         }
     } 
 
+
+    // if user is a shared user update firedoc id
     let isSharedUser = (type, fireDocId) => {
         if(type===2){
             console.log("User is a shared user");
@@ -90,26 +75,31 @@ function ChildrenTasks(props){
         }
     }
 
+    // callback: load data from database
     let loadData = (info) => {
         setChildTask(info.childrenTasks);
         setChildren(info.myChildren);
         setMasterUser(info.isMasterUser);
     }
 
+    // callback: T/F for status of child
     let childStatus = (status) => {
         setChildUser(status);
     }
 
+    // list all children for the dropdown
     function listchild(props) {
-
         return(
             <option value={props.name}>{props.name}</option>
         )
     }
 
+    // process form for adding a new chore 
     function processForm(e) {
         e.preventDefault();
         console.log("assigned:", formAssigned, " chore:",formChore, "date:", formDate );
+
+        // check if values are not empty or equal to the default
         if(formAssigned !== "default" && formChore !== "" && formDate !== ""){
 
             let data = {email: formAssigned, chore: formChore, date: formDate};
@@ -151,6 +141,15 @@ function ChildrenTasks(props){
     }
 
 
+    const handleClickOpen = () => {
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
+    
+
     let l = children.map(i => listchild({name: i}));
     let childList;
     
@@ -167,14 +166,9 @@ function ChildrenTasks(props){
   
     
     return(
-  
-
-        
-
         <div>
             { isMasterUser ? 
            (   
-             
                 <Box className="box">
                 <Card className="cardChore" variant="outlined">
                     <CardHeader
@@ -191,7 +185,6 @@ function ChildrenTasks(props){
                 <CardContent><List>{childList}</List></CardContent>
                     </Card>
                  </Box>
-                
            )
                 :
                 null
@@ -219,6 +212,7 @@ function ChildrenTasks(props){
                 : null
             }
       
+
             <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
                 <DialogTitle id="form-dialog-title">Assign Chore</DialogTitle>
                     <DialogContent>

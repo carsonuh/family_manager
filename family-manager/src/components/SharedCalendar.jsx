@@ -15,6 +15,7 @@ import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import SharedCalendarService from '../Services/SharedCalendarService.js';
 import AddEvent from './AddEvent.jsx';
+import Settings from "./Settings"
 
 
 //TODO: On form for adding a user, specify if they are a child. If so, add that info to the DB
@@ -337,7 +338,11 @@ class SharedCalendar extends Component {
                 <div>
                     {
                         this.state.masterUser ?
+
+                            <div>
                             <button variant="contained" color="primary" onClick={this.toggleShareField}>Share Calendar</button>
+                            <Settings userEmail={this.state.userEmail} />
+                            </div>
                             :
                             <div></div>
                     }
