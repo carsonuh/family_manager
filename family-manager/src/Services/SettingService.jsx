@@ -21,11 +21,12 @@ export default class SettingService {
                         let myChildren = doc.data().children;
                         console.log(myChildren)
 
-
                         let isMasterUser = doc.data().masterUser === email ? true : false;
 
+                        let childTasks = doc.data().childrenTasks;
 
-                        callback({sharedUsers, myChildren, isMasterUser});
+
+                        callback({sharedUsers, myChildren, isMasterUser, childTasks});
 
                     } else {
                         console.log('Counldnt find user data');

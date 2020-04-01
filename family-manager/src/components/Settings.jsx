@@ -9,7 +9,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import ListItemText from '@material-ui/core/ListItemText';
-import ListItem from '@material-ui/core/ListItem';
+//import ListSubheader from '@material-ui/core/ListSubheader';
 import List from '@material-ui/core/List';
 import Divider from '@material-ui/core/Divider';
 import AppBar from '@material-ui/core/AppBar';
@@ -18,7 +18,9 @@ import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
 import CloseIcon from '@material-ui/icons/Close';
 import Slide from '@material-ui/core/Slide';
-
+import { ListSubheader } from "@material-ui/core"
+import AddIcon from '@material-ui/icons/Add';
+import { green } from '@material-ui/core/colors';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -28,8 +30,9 @@ const useStyles = makeStyles((theme) => ({
     },
 
     subTitle: {
-      marginLeft: theme.spacing(2),
+      
       marginTop: theme.spacing(2),
+      fontSize: '1.53em',
     },
 
     title: {
@@ -46,6 +49,7 @@ function Settings(props) {
     const [sharedUsers, setSharedUsers] = useState([])
     const [childUsers, setChildUsers] = useState([])
     const [isMasterUser, setMasterUser] = useState(false)
+    const [childTasks, setChildTasks] = useState([])
     let verifyUser = new SharedCalendarService()
     let getSettings = new SettingService()
 
@@ -79,6 +83,7 @@ function Settings(props) {
         setSharedUsers(info.sharedUsers);
         setChildUsers(info.myChildren);
         setMasterUser(info.isMasterUser);
+        setChildTasks(info.childTasks);
     }
 
 
@@ -86,28 +91,48 @@ function Settings(props) {
     let deleteTask = (email, type) => {
       const db = firebase.firestore();
 
-      if  (type === "shared") {
-         // alert("Delete shared")
           db.collection("UserCalendarData").doc(fireDocId).update({
             sharedUsers: firebase.firestore.FieldValue.arrayRemove(email) 
         });
         
-        return setSharedUsers(sharedUsers.filter(u => u !== email));
-      }
+         setSharedUsers(sharedUsers.filter(u => u !== email));
+      
 
       if (type === "child") {
 
+        
+
         db.collection("UserCalendarData").doc(fireDocId).update({
-          children: firebase.firestore.FieldValue.arrayRemove(email) 
+          children: firebase.firestore.FieldValue.arrayRemove(email)
       });
+
+      let removeChild = childTasks.filter((t) => t.email === email)
+
+      removeChild.map(c => {
+        db.collection("UserCalendarData").doc(fireDocId).update({
+          childrenTasks: firebase.firestore.FieldValue.arrayRemove({chore: c.chore, date: c.date, email:c.email})
+    });
+      })
+     
       
-      return setChildUsers(childUsers.filter(u => u !== email));
+       setChildTasks(childTasks.filter((t) => t.email !== email))
+       setChildUsers(childUsers.filter(u => u !== email));
+
+
           
       }
   }
 
+    // gets the difference between sharedUsers[] and childUsers[]
+  
+   let sUsers = sharedUsers.filter(x => !childUsers.includes(x)).concat(childUsers.filter(x => !sharedUsers.includes(x)));
+    
+    let shared = ""
 
-    let shared = sharedUsers.map( u => <SettingsDialog email={u} type="shared" onDeleteClick={deleteTask} />)
+    if(sUsers.length > 0){
+      shared = sUsers.map( u => <SettingsDialog email={u} type="shared" onDeleteClick={deleteTask} />)
+    }
+
     let child = childUsers.map(u => <SettingsDialog email={u} type="child" onDeleteClick={deleteTask} />)
     return(
         <div>
@@ -129,9 +154,14 @@ function Settings(props) {
           </Toolbar>
         </AppBar>
 
-        <Typography variant="h4" className={classes.subTitle}>Users</Typography>
+        {/* <Typography variant="h4" className={classes.subTitle}>Users</Typography> */}
 
         <List>
+          <ListSubheader className={classes.subTitle}>Users 
+          <IconButton edge="end" aria-label="delete" style={{ color: green[500] }} >
+                      <AddIcon />
+                  </IconButton>
+                </ListSubheader>
 
         <SettingsDialog email={email} type="master user" />
         {shared}
