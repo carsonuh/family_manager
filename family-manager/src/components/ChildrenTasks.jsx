@@ -90,7 +90,7 @@ function ChildrenTasks(props){
     // list all children for the dropdown
     function listchild(props) {
         return(
-            <option value={props.name}>{props.name}</option>
+            <option key={props.key} value={props.name}>{props.name}</option>
         )
     }
 
@@ -150,17 +150,17 @@ function ChildrenTasks(props){
     };
     
 
-    let l = children.map(i => listchild({name: i}));
+    let l = children.map((i, index) => listchild({name: i, key:index}));
     let childList;
     
-    childList = childrenTasks.map( i => {
-        return <ChildTaskListParentView chore={i.chore} child={i.email} date={i.date} onDeleteClick={deleteTask} />
+    childList = childrenTasks.map((i, index) => {
+        return <ChildTaskListParentView key={index} chore={i.chore} child={i.email} date={i.date} onDeleteClick={deleteTask} />
     })
 
     if (isChildUser){
         let mine = childrenTasks.filter(chore => chore.email === email)
-        childList = mine.map( i => {
-            return <ChildTaskList chore={i.chore} child={i.email} date={i.date} onDeleteClick={deleteTask} />
+        childList = mine.map( (i, index) => {
+            return <ChildTaskList key={index} chore={i.chore} child={i.email} date={i.date} onDeleteClick={deleteTask} />
         })
     }
   
