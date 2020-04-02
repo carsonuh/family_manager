@@ -11,6 +11,7 @@ import AddEvent from './AddEvent.jsx';
 import Settings from "./Settings"
 import EditEvent from './EditEvent.jsx';
 import moment from 'moment';
+import MyComponents from './GoogleMap.jsx';
 
 //setup time localizer
 const localizer = momentLocalizer(moment);
@@ -53,6 +54,8 @@ class SharedCalendar extends Component {
             userEventId: 0,
             userEventOwner: "null",
             userEventVisbility: "null",
+            startZip: "null",
+            endZip: "null",
             emailToShare: "null",
             childChecked: false,
             isChild: false,
@@ -130,7 +133,9 @@ class SharedCalendar extends Component {
             end: eventData.end,
             id: eventData.id,
             visibility: eventData.visibility,
-            owner: eventData.owner
+            owner: eventData.owner,
+            startZip: eventData.startZip,
+            endZip: eventData.endZip
         }
 
         const db = firebase.firestore();
@@ -150,7 +155,9 @@ class SharedCalendar extends Component {
             end: new Date(editedEvent.eventEnd),
             id: editedEvent.id,
             owner: editedEvent.owner,
-            visibility: editedEvent.visibility
+            visibility: editedEvent.visibility,
+            startZip: editedEvent.startZip,
+            endZip: editedEvent.endZip
         }
 
         //Store the events in a local array and then update the event that was modified
@@ -186,7 +193,8 @@ class SharedCalendar extends Component {
         //Remove the selected event from the local event array, then update state with the new event array
         let eventArray = [...this.state.events];
         let eventToRemove = eventArray.find(event => event.id == updatedEvent.id);
-        eventArray.splice(eventToRemove, 1);
+        eventArray.splice(eventArray.indexOf(eventToRemove), 1);
+        console.log(eventToRemove)
         this.setState({ events: eventArray });
 
         const db = firebase.firestore();
@@ -211,6 +219,8 @@ class SharedCalendar extends Component {
         let visibility = newEventData.visibility;
         let owner = newEventData.owner;
         let id = Math.floor(Math.random() * 1000000);
+        let startZip = newEventData.eventStartZip;
+        let endZip = newEventData.eventEndZip;
         this.setState({
             events: [
                 ...this.state.events,
@@ -220,11 +230,13 @@ class SharedCalendar extends Component {
                     end,
                     id,
                     visibility,
-                    owner
+                    owner,
+                    startZip,
+                    endZip
                 }
             ]
         }, () => console.log(this.state.events));
-        this.updateStorage({ title, start, end, id, visibility, owner });
+        this.updateStorage({ title, start, end, id, visibility, owner, startZip, endZip });
     }
 
     shareCalendar = (e) => {
@@ -252,6 +264,8 @@ class SharedCalendar extends Component {
             userEventId: event.id.toString(),
             userEventOwner: event.owner.toString(),
             userEventVisbility: event.visibility.toString(),
+            startZip: event.startZip.toString(),
+            endZip: event.endZip.toString(),
             showEditForm: true
         });
     }
@@ -298,7 +312,9 @@ class SharedCalendar extends Component {
                                     eventTitle: this.state.userEventTitle,
                                     id: this.state.userEventId,
                                     owner: this.state.userEventOwner,
-                                    visibility: this.state.userEventVisbility
+                                    visibility: this.state.userEventVisbility,
+                                    endZip: this.state.endZip,
+                                    startZip: this.state.startZip
                                 }}
                                 editCallback={event => this.editEventInStorage(event)}
                                 deleteCallback={event => this.deleteEventInStorage(event)}
@@ -311,7 +327,7 @@ class SharedCalendar extends Component {
                     }
                 </div>
                 <div>
-                    {
+                    {/* {
                         this.state.masterUser ?
 
                             <div>
@@ -320,7 +336,7 @@ class SharedCalendar extends Component {
                             </div>
                             : 
                             <div></div>
-                    }
+                    } */}
                     {
                         this.state.showShareField ?
                             <div>
@@ -334,6 +350,9 @@ class SharedCalendar extends Component {
                             :
                             <div></div>
                     }
+                </div>
+                <div>
+                    {/* <MyComponents /> */}
                 </div>
             </div>
 
