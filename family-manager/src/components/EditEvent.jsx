@@ -9,12 +9,29 @@ import FormControl from '@material-ui/core/FormControl';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import InputLabel from '@material-ui/core/InputLabel';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogContent from '@material-ui/core/DialogContent';
 import NotificationService from '../Services/NotificationService';
+import IconButton from '@material-ui/core/IconButton';
+import CloseIcon from '@material-ui/icons/Close';
+import DeleteIcon from '@material-ui/icons/Delete';
+import EditIcon from '@material-ui/icons/Edit';
+import Typography from '@material-ui/core/Typography';
+import { grey } from '@material-ui/core/colors';
+import Weather from './Weather.jsx';
+import useWindowDimensions from './windowDimensions.jsx';
+
+
 import {
     MuiPickersUtilsProvider,
     DatePicker,
     TimePicker
 } from '@material-ui/pickers';
+import { withStyles, makeStyles } from '@material-ui/core';
+import MyComponents from './GoogleMap';
+import { styles } from '@material-ui/pickers/views/Clock/Clock';
 
 const CalendarStyles = {
     editFormContainer: {
@@ -26,17 +43,74 @@ const CalendarStyles = {
 }
 
 let tempStyles = {
-    minWidth: 120
+    width: '325px'
 }
 
-function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback, userEmail }) {
+let useStyles = makeStyles({
+    root: {
+        margin: 0,
+        padding: 16
+    },
+    closeButton: {
+        position: 'absolute',
+        right: '8px',
+        top: '8px',
+        color: grey[500],
+    },
+    deleteButton: {
+        position: 'absolute',
+        right: '40px',
+        top: '8px',
+        color: grey[500],
+    },
+    editButton: {
+        position: 'absolute',
+        right: '72px',
+        top: '8px',
+        color: grey[500],
+    },
+    eventTitle: {
+        width: '325px'
+    },
+    eventStartDate: {
+        width: '155px'
+    },
+    eventStartTime: {
+        marginTop: '16px',
+        width: '155px',
+        marginLeft: '15px'
+    },
+    checkBoxes: {
+        marginTop: '10px',
+        marginRight: '200px'
+    },
+    zipcodeBoxStart: {
+        width: '155px',
+        marginTop: '16px'
+    },
+    zipcodeBoxEnd: {
+        width: '155px',
+        marginLeft: '15px',
+        marginTop: '16px'
+    },
+    centerButton: {
+        marginRight: '143px',
+        marginTop: '10px'
+    },
+    weather: {
+        marginLeft: '130px'
+    }
+});
 
-    
+function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback, userEmail }) {
 
     let [userEvent, setUserEvent] = React.useState({ ...userEventData });
     let [reminderChecked, setReminderChecked] = React.useState(false);
     let [reminderData, setReminderData] = React.useState({ phoneNumber: "", email: "", eventTitle: "", reminderDateOffset: "", eventDate: "" });
     let [privateChecked, setPrivateChecked] = React.useState(userEmail == userEventData.visibility);
+    let [detailsMode, setDetailsMode] = React.useState(true);
+    const { height, width } = useWindowDimensions();
+    const classes = useStyles();
 
     const handleStartDateChange = (e) => {
         let start = new Date(e);
@@ -57,6 +131,18 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
         setUserEvent(userEventData);
     }
 
+    const handleStartZipChange = (e) => {
+        let userEventData = { ...userEvent };
+        userEventData.startZip = e.target.value;
+        setUserEvent(userEventData);
+    }
+
+    const handleEndZipChange = (e) => {
+        let userEventData = { ...userEvent };
+        userEventData.endZip = e.target.value;
+        setUserEvent(userEventData);
+    }
+
     const editEvent = () => {
         let updatedEvent = { ...userEvent };
 
@@ -66,7 +152,7 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
         reminderDataToSend.eventTitle = updatedEvent.eventTitle;
         reminderDataToSend.eventDate = finalDate;
 
-        
+
         if (privateChecked) {
             console.log('here')
             updatedEvent.visibility = userEmail;
@@ -102,108 +188,171 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
 
     let togglePrivateChecked = () => setPrivateChecked(!privateChecked);
 
-    let toggleRemindersChecked = () => {
-        setReminderChecked(!reminderChecked);
-    }
 
-    let handleReminderEmail = email => {
-        let reminderD = { ...reminderData };
-        reminderD.email = email.target.value;
-        setReminderData(reminderD);
-    }
-
-    let handleReminderPhone = phoneNumber => {
-        let reminderD = { ...reminderData };
-        reminderD.phoneNumber = phoneNumber.target.value;
-        setReminderData(reminderD);
-    }
-
-    const handleTimeOffset = handleTimeOffset => {
-        let reminderD = { ...reminderData };
-        reminderD.reminderDateOffset = handleTimeOffset.target.value;
-        setReminderData(reminderD);
-    };
+    const toggleDetailsMode = () => setDetailsMode(!detailsMode);
 
     return (
-        <div style={CalendarStyles.editFormContainer}>
-            Edit
-            <form>
-                <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils}>
-                    <DatePicker
-                        //   variant="inline"
-                        format="MM/DD/YYYY"
-                        margin="normal"
-                        label="Start Date"
-                        value={userEvent.eventStart}
-                        onChange={date => handleStartDateChange(date)}
+        <div>
+            <Dialog onClose={handleClose} open={true} scroll={'body'}>
+                <DialogTitle className={classes.root}>
+                    Event Details
+                    <IconButton className={classes.closeButton} onClick={handleClose}>
+                        <CloseIcon />
+                    </IconButton>
+                    <IconButton className={classes.deleteButton} onClick={deleteEvent}>
+                        <DeleteIcon />
+                    </IconButton>
+                    <IconButton className={classes.editButton} onClick={toggleDetailsMode}>
+                        <EditIcon />
+                    </IconButton>
+                </DialogTitle>
+                <DialogContent style={{justifyContent: 'center'}}>
+                    {
+                        console.log(width)
+                    }
+                    <TextField
+                        label="Event Title"
+                        value={userEvent.eventTitle}
+                        onChange={title => handleTitleChange(title)}
+                        className={classes.eventTitle}
+                        disabled={detailsMode}
+                        style={{
+                            width: width < '440' ? '270px' : '325px'
+                        }}
                     />
-                    <DatePicker
-                        //   variant="inline"
-                        format="MM/DD/YYYY"
-                        margin="normal"
-                        label="End Date"
-                        value={userEvent.eventEnd}
-                        onChange={date => handleEndDateChange(date)}
-                    />
-                    <TimePicker
-                        autoOk
-                        label="Start Time"
-                        value={userEvent.eventStart}
-                        onChange={time => handleStartDateChange(time)}
-                    />
-                    <TimePicker
-                        autoOk
-                        label="End Time"
-                        value={userEvent.eventEnd}
-                        onChange={time => handleEndDateChange(time)}
-                    />
-                    <TextField label="Event Title" value={userEvent.eventTitle} onChange={title => handleTitleChange(title)} />
-                </MuiPickersUtilsProvider>
-                <Button variant="contained" color="primary" onClick={editEvent}>Submit</Button>
-                <Button variant="contained" color="primary" onClick={deleteEvent}>Delete Event</Button>
-                <Button variant="contained" color="primary" onClick={handleClose}>Close</Button>
-                <FormControlLabel
-                    control={<Checkbox name="check" onClick={toggleRemindersChecked} checked={reminderChecked} />}
-                    label="Signup For Reminders"
-                    
-                />
-                {
-                    userEmail == userEvent.owner ?
+                    <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils}>
                         <div>
-                            <FormControlLabel
-                                control={<Checkbox name="check" onClick={togglePrivateChecked} checked={privateChecked} />}
-                                label="Make this Event Private"
+                            <DatePicker
+                                variant="inline"
+                                format="MM/DD/YYYY"
+                                margin="normal"
+                                label="Start Date"
+                                value={userEvent.eventStart}
+                                onChange={date => handleStartDateChange(date)}
+                                className={classes.eventStartDate}
+                                disabled={detailsMode}
+                                style={{
+                                    width: width < '440' ? '270px' : '155px'
+                                }}
+                            />
+                            <TimePicker
+                                autoOk
+                                variant="inline"
+                                label="Start Time"
+                                value={userEvent.eventStart}
+                                onChange={time => handleStartDateChange(time)}
+                                className={classes.eventStartTime}
+                                disabled={detailsMode}
+                                style={{
+                                    width: width < '440' ? '270px' : '155px',
+                                    marginLeft: width < '440' ? '0px' : '15px',
+                                    marginTop: width < '440' ? '8px' : '16px'
+                                }}
                             />
                         </div>
-                    :
-                        <div></div>
-                }
+                        <div>
+                            <DatePicker
+                                variant="inline"
+                                format="MM/DD/YYYY"
+                                margin="normal"
+                                label="End Date"
+                                value={userEvent.eventEnd}
+                                onChange={date => handleEndDateChange(date)}
+                                className={classes.eventStartDate}
+                                disabled={detailsMode}
+                                style={{
+                                    width: width < '440' ? '270px' : '155px'
+                                }}
+                            />
+                            <TimePicker
+                                autoOk
+                                label="End Time"
+                                value={userEvent.eventEnd}
+                                onChange={time => handleEndDateChange(time)}
+                                className={classes.eventStartTime}
+                                disabled={detailsMode}
+                                style={{
+                                    width: width < '440' ? '270px' : '155px',
+                                    marginLeft: width < '440' ? '0px' : '15px',
+                                    marginTop: width < '440' ? '8px' : '16px'
+                                }}
+                            />
+                        </div>
+                    </MuiPickersUtilsProvider>
+                    <div>
+                        <TextField
+                            label="Your Zipcode"
+                            value={userEvent.startZip || ''}
+                            onChange={zip => handleStartZipChange(zip)}
+                            disabled={detailsMode}
+                            className={classes.zipcodeBoxStart}
+                            style={{
+                                width: width < '440' ? '270px' : '155px',
+                                marginTop: width < '440' ? '8px' : '16px'
+                            }}
+                        />
+                        <TextField
+                            label="Event Zipcode"
+                            value={userEvent.endZip || ''}
+                            onChange={zip => handleEndZipChange(zip)}
+                            className={classes.zipcodeBoxEnd}
+                            disabled={detailsMode}
+                            style={{
+                                width: width < '440' ? '270px' : '155px',
+                                marginLeft: width < '440' ? '0px' : '15px',
+                                marginTop: width < '440' ? '8px' : '16px'
+                            }}
+                        />
+                    </div>
+                    {
+                        userEmail == userEvent.owner ?
+                            <div className={classes.checkBoxes}>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox name="check"
+                                            onClick={togglePrivateChecked}
+                                            checked={privateChecked}
+                                            disabled={detailsMode}
+                                        />}
+                                    label="Private Event"
+                                />
+                            </div>
+                            :
+                            <div></div>
+                    }
+                    {/* {
+                        detailsMode === true ?
+                            <div>{
+                                userEvent.endZip.length >= 5 ?
+                                    <div className={classes.weather}>
+                                        <Weather
+                                            zipcode={userEventData.endZip}
 
-            </form>
-            <div>
-                {
-                    reminderChecked === true ?
-                        <form>
-                            <TextField label="Email" value={reminderData.email} onChange={handleReminderEmail} />
-                            <TextField label="Phone Number" value={reminderData.phoneNumber} onChange={handleReminderPhone} />
-                            <FormControl style={tempStyles}>
-                                <InputLabel id="demo-simple-select-label">Remind Me In</InputLabel>
-                                <Select
-                                    labelId="demo-simple-select-label"
-                                    id="demo-simple-select"
-                                    value={reminderData.reminderDateOffset}
-                                    onChange={handleTimeOffset}
-                                >
-                                    <MenuItem value={1}>10 Minutes</MenuItem>
-                                    <MenuItem value={2}>1 Hour</MenuItem>
-                                    <MenuItem value={3}>1 Day</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </form>
-                        :
-                        <div></div>
-                }
-            </div>
+                                        />
+                                    </div>
+                                    :
+                                    <div></div>
+                            }</div>
+                            :
+                            <div>
+                            </div>
+                    }
+                    <div>
+                        {
+                            detailsMode === true ?
+                                <div>
+                                    <GMap startZip={userEvent.startZip} endZip={userEvent.endZip} />
+                                </div>
+                                :
+                                <div>
+                                </div>
+                        }
+                    </div> */}
+                </DialogContent>
+                <DialogActions style={{justifyContent: 'center'}}>
+                            <Button style={{ visibility: detailsMode === true ? 'hidden' : 'visible' }} variant="contained" color="primary" onClick={editEvent}>Submit</Button>
+                </DialogActions>
+            </Dialog>
         </div>
     )
 }
