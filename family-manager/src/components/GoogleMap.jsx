@@ -72,7 +72,7 @@ class GMap extends Component {
       <div>
         <LoadScript
           id="script-loader"
-          googleMapsApiKey="AIzaSyD4Ub-e46ZN-fsHsomSd5S5QxepyCW2V-Q"
+          googleMapsApiKey=""
         >
           <GoogleMap
             id='example-map'
