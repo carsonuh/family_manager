@@ -23,7 +23,7 @@ let tempStyles = {
 
 function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
 
-    let [newEvent, setNewEvent] = React.useState({ eventTitle: "My New Event", eventStartDate: null, eventEndDate: null, visibility: "", owner: ""});
+    let [newEvent, setNewEvent] = React.useState({ eventTitle: "My New Event", eventStartDate: null, eventEndDate: null, visibility: "", owner: "", eventStartZip: "", eventEndZip: ""});
     let [reminderData, setReminderData] = React.useState({ phoneNumber: "", email: "", eventTitle: "", reminderDateOffset: "", eventDate: ""});
     let [reminderChecked, setReminderChecked] = React.useState(false);
     let [privateChecked, setPrivateChecked] = React.useState(false);
