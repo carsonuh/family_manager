@@ -24,12 +24,11 @@ import { green } from '@material-ui/core/colors';
 
 const useStyles = makeStyles((theme) => ({
     appBar: {
-      background: 'linear-gradient(45deg, #009688 30%, #4CAF50 90%)',
+      background: 'linear-gradient(45deg, #2196F3 10%, #21CBF3 90%)',
       position: 'relative',
     },
 
     subTitle: {
-      
       marginTop: theme.spacing(2),
       fontSize: '1.53em',
     },
@@ -169,10 +168,10 @@ function Settings(props) {
     let shared = ""
 
     if(sUsers.length > 0){
-      shared = sUsers.map( u => <SettingsDialog email={u} type="shared" onDeleteClick={deleteTask} />)
+      shared = sUsers.map( (u, index) => <SettingsDialog key={index} email={u} type="shared" onDeleteClick={deleteTask} />)
     }
 
-    let child = childUsers.map(u => <SettingsDialog email={u} type="child" onDeleteClick={deleteTask} />)
+    let child = childUsers.map( (u, index) => <SettingsDialog key={index} email={u} type="child" onDeleteClick={deleteTask} />)
     return(
         <div>
       <Button variant="outlined" color="primary" onClick={handleClickOpen}>
@@ -187,9 +186,7 @@ function Settings(props) {
             <Typography variant="h6" className={classes.title}>
               Settings
             </Typography>
-            <Button autoFocus color="inherit" onClick={handleClose}>
-              save
-            </Button>
+            
           </Toolbar>
         </AppBar>
 

@@ -17,7 +17,7 @@ const useStyles = makeStyles((theme) => ({
   },
 
   bar: {
-    background: 'linear-gradient(45deg, #009688 30%, #4CAF50 90%)',
+    background: 'linear-gradient(45deg, #2196F3 10%, #21CBF3 90%)',
   },
   title: {
     flexGrow: 1,
