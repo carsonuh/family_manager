@@ -5,10 +5,6 @@ import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormControl from '@material-ui/core/FormControl';
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
-import InputLabel from '@material-ui/core/InputLabel';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogTitle from '@material-ui/core/DialogTitle';
@@ -18,10 +14,9 @@ import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
-import Typography from '@material-ui/core/Typography';
-import { grey } from '@material-ui/core/colors';
 import Weather from './Weather.jsx';
-import useWindowDimensions from './windowDimensions.jsx';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
+import GMap from './GoogleMap.jsx';
 
 
 import {
@@ -29,76 +24,54 @@ import {
     DatePicker,
     TimePicker
 } from '@material-ui/pickers';
-import { withStyles, makeStyles } from '@material-ui/core';
-import MyComponents from './GoogleMap';
-import { styles } from '@material-ui/pickers/views/Clock/Clock';
+import { makeStyles, useTheme } from '@material-ui/core';
 
-const CalendarStyles = {
-    editFormContainer: {
-        height: "500px",
-        width: "500px",
-        margin: "0 auto",
-        marginTop: "50px"
-    }
-}
-
-let tempStyles = {
-    width: '325px'
-}
 
 let useStyles = makeStyles({
     root: {
         margin: 0,
         padding: 16
     },
+    title: {
+        background: 'linear-gradient(45deg, #2196F3 10%, #21CBF3 90%)',
+        color: '#FFFFFF'
+    },
     closeButton: {
         position: 'absolute',
         right: '8px',
         top: '8px',
-        color: grey[500],
+        color: '#FFFFFF',
     },
     deleteButton: {
         position: 'absolute',
         right: '40px',
         top: '8px',
-        color: grey[500],
+        color: '#FFFFFF',
     },
     editButton: {
         position: 'absolute',
         right: '72px',
         top: '8px',
-        color: grey[500],
-    },
-    eventTitle: {
-        width: '325px'
-    },
-    eventStartDate: {
-        width: '155px'
-    },
-    eventStartTime: {
-        marginTop: '16px',
-        width: '155px',
-        marginLeft: '15px'
+        color: '#FFFFFF',
     },
     checkBoxes: {
         marginTop: '10px',
         marginRight: '200px'
-    },
-    zipcodeBoxStart: {
-        width: '155px',
-        marginTop: '16px'
-    },
-    zipcodeBoxEnd: {
-        width: '155px',
-        marginLeft: '15px',
-        marginTop: '16px'
     },
     centerButton: {
         marginRight: '143px',
         marginTop: '10px'
     },
     weather: {
-        marginLeft: '130px'
+        marginLeft: '45%'
+    },
+    firstElementWidth: {
+        width: '49%'
+    },
+    secondElementWidth: {
+        width: '48%',
+        marginLeft: '2%',
+        marginTop: '16px'
     }
 });
 
@@ -109,7 +82,8 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
     let [reminderData, setReminderData] = React.useState({ phoneNumber: "", email: "", eventTitle: "", reminderDateOffset: "", eventDate: "" });
     let [privateChecked, setPrivateChecked] = React.useState(userEmail == userEventData.visibility);
     let [detailsMode, setDetailsMode] = React.useState(true);
-    const { height, width } = useWindowDimensions();
+    const theme = useTheme();
+    const fullScreen = useMediaQuery(theme.breakpoints.down('xs'));
     const classes = useStyles();
 
     const handleStartDateChange = (e) => {
@@ -193,8 +167,8 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
 
     return (
         <div>
-            <Dialog onClose={handleClose} open={true} scroll={'body'}>
-                <DialogTitle className={classes.root}>
+            <Dialog onClose={handleClose} open={true} fullScreen={fullScreen}>
+                <DialogTitle className={classes.title}>
                     Event Details
                     <IconButton className={classes.closeButton} onClick={handleClose}>
                         <CloseIcon />
@@ -207,18 +181,12 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                     </IconButton>
                 </DialogTitle>
                 <DialogContent style={{justifyContent: 'center'}}>
-                    {
-                        console.log(width)
-                    }
                     <TextField
                         label="Event Title"
                         value={userEvent.eventTitle}
                         onChange={title => handleTitleChange(title)}
-                        className={classes.eventTitle}
                         disabled={detailsMode}
-                        style={{
-                            width: width < '440' ? '270px' : '325px'
-                        }}
+                        fullWidth
                     />
                     <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils}>
                         <div>
@@ -229,11 +197,9 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                                 label="Start Date"
                                 value={userEvent.eventStart}
                                 onChange={date => handleStartDateChange(date)}
-                                className={classes.eventStartDate}
+                                className={classes.firstElementWidth}
                                 disabled={detailsMode}
-                                style={{
-                                    width: width < '440' ? '270px' : '155px'
-                                }}
+                   
                             />
                             <TimePicker
                                 autoOk
@@ -241,13 +207,8 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                                 label="Start Time"
                                 value={userEvent.eventStart}
                                 onChange={time => handleStartDateChange(time)}
-                                className={classes.eventStartTime}
+                                className={classes.secondElementWidth}
                                 disabled={detailsMode}
-                                style={{
-                                    width: width < '440' ? '270px' : '155px',
-                                    marginLeft: width < '440' ? '0px' : '15px',
-                                    marginTop: width < '440' ? '8px' : '16px'
-                                }}
                             />
                         </div>
                         <div>
@@ -258,24 +219,16 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                                 label="End Date"
                                 value={userEvent.eventEnd}
                                 onChange={date => handleEndDateChange(date)}
-                                className={classes.eventStartDate}
+                                className={classes.firstElementWidth}
                                 disabled={detailsMode}
-                                style={{
-                                    width: width < '440' ? '270px' : '155px'
-                                }}
                             />
                             <TimePicker
                                 autoOk
                                 label="End Time"
                                 value={userEvent.eventEnd}
                                 onChange={time => handleEndDateChange(time)}
-                                className={classes.eventStartTime}
+                                className={classes.secondElementWidth}
                                 disabled={detailsMode}
-                                style={{
-                                    width: width < '440' ? '270px' : '155px',
-                                    marginLeft: width < '440' ? '0px' : '15px',
-                                    marginTop: width < '440' ? '8px' : '16px'
-                                }}
                             />
                         </div>
                     </MuiPickersUtilsProvider>
@@ -285,11 +238,7 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                             value={userEvent.startZip || ''}
                             onChange={zip => handleStartZipChange(zip)}
                             disabled={detailsMode}
-                            className={classes.zipcodeBoxStart}
-                            style={{
-                                width: width < '440' ? '270px' : '155px',
-                                marginTop: width < '440' ? '8px' : '16px'
-                            }}
+                            className={classes.firstElementWidth}
                         />
                         <TextField
                             label="Event Zipcode"
@@ -298,9 +247,8 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                             className={classes.zipcodeBoxEnd}
                             disabled={detailsMode}
                             style={{
-                                width: width < '440' ? '270px' : '155px',
-                                marginLeft: width < '440' ? '0px' : '15px',
-                                marginTop: width < '440' ? '8px' : '16px'
+                                width: '49%',
+                                marginLeft: '2%' 
                             }}
                         />
                     </div>
@@ -350,7 +298,12 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                     </div> */}
                 </DialogContent>
                 <DialogActions style={{justifyContent: 'center'}}>
-                            <Button style={{ visibility: detailsMode === true ? 'hidden' : 'visible' }} variant="contained" color="primary" onClick={editEvent}>Submit</Button>
+                            <Button 
+                                style={{ visibility: detailsMode === true ? 'hidden' : 'visible' }} 
+                                variant="contained" 
+                                color="secondary" 
+                                onClick={editEvent}>Submit
+                            </Button>
                 </DialogActions>
             </Dialog>
         </div>
