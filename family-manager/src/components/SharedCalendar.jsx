@@ -327,7 +327,7 @@ class SharedCalendar extends Component {
                     }
                 </div>
                 <div>
-                    {/* {
+                    {
                         this.state.masterUser ?
 
                             <div>
@@ -336,7 +336,7 @@ class SharedCalendar extends Component {
                             </div>
                             : 
                             <div></div>
-                    } */}
+                    }
                     {
                         this.state.showShareField ?
                             <div>
@@ -350,9 +350,6 @@ class SharedCalendar extends Component {
                             :
                             <div></div>
                     }
-                </div>
-                <div>
-                    {/* <MyComponents /> */}
                 </div>
             </div>
 
