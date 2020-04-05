@@ -138,7 +138,7 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
         let start = moment(startDate);
         let end = moment(endDate);
         console.log(end.isBefore(start));
-        if (end.isBefore(start)) {
+        if (end.isBefore(start) || start.isSame(end)) {
             return false;
         } else {
             return true;
@@ -337,7 +337,6 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                             </div>
                     } */}
                     <div>
-                    {console.log(mapVisible)}
                         {
                             
                             detailsMode === true && mapVisible === true ?
@@ -360,7 +359,7 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                 </DialogActions>
                 <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleSnackbarClose}>
         <Alert onClose={handleSnackbarClose} severity="error">
-          End Date cannot be before the Start Date!
+          End Date cannot be before or equal to the Start Date!
         </Alert>
          </Snackbar>
             </Dialog>

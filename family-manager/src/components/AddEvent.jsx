@@ -28,12 +28,12 @@ let tempStyles = {
 }
 
 
-  
+
 
 const useStyles = makeStyles((theme) => ({
     root: {
-      margin: 0,
-      padding: theme.spacing(2),
+        margin: 0,
+        padding: theme.spacing(2),
     },
     title: {
         background: 'linear-gradient(45deg, #2196F3 10%, #21CBF3 90%)',
@@ -42,10 +42,10 @@ const useStyles = makeStyles((theme) => ({
     },
 
     closeButton: {
-      position: 'absolute',
-      right: theme.spacing(1),
-      top: theme.spacing(1),
-      color: '#FFFFFF',
+        position: 'absolute',
+        right: theme.spacing(1),
+        top: theme.spacing(1),
+        color: '#FFFFFF',
     },
 
     submit: {
@@ -58,7 +58,7 @@ const useStyles = makeStyles((theme) => ({
         marginBottom: theme.spacing(2),
     },
 
-    etitle:{
+    etitle: {
         fontSize: "20px",
     },
 
@@ -66,13 +66,13 @@ const useStyles = makeStyles((theme) => ({
         width: '50%'
     }
 
-  }));
-  
+}));
+
 
 function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
 
-    let [newEvent, setNewEvent] = React.useState({ eventTitle: "", eventStartDate: moment().format("ll"), eventEndDate: moment().format("ll"), visibility: "", owner: "", eventStartZip: "", eventEndZip: ""});
-    let [reminderData, setReminderData] = React.useState({ phoneNumber: "", email: "", eventTitle: "", reminderDateOffset: "", eventDate: ""});
+    let [newEvent, setNewEvent] = React.useState({ eventTitle: "", eventStartDate: moment().format("ll"), eventEndDate: moment().format("ll"), visibility: "", owner: "", eventStartZip: "", eventEndZip: "" });
+    let [reminderData, setReminderData] = React.useState({ phoneNumber: "", email: "", eventTitle: "", reminderDateOffset: "", eventDate: "" });
     let [reminderChecked, setReminderChecked] = React.useState(false);
     let [privateChecked, setPrivateChecked] = React.useState(false);
     let [open, setOpen] = useState(true)
@@ -80,6 +80,7 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
     const classes = useStyles();
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('xs'));
+    let [alertMessage, setAlertMessage] = React.useState("");
 
 
     let handleNewEventTitle = (e) => {
@@ -102,67 +103,47 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
 
     const handleSnackbarClose = (event, reason) => {
         if (reason === 'clickaway') {
-          return;
+            return;
         }
-    
+
         setOpenSnackbar(false);
-      };
+    };
 
 
-      function Alert(props) {
+    function Alert(props) {
         return <MuiAlert elevation={6} variant="filled" {...props} />;
-      }
+    }
+
+    function isValidDate(startDate, endDate) {
+        let start = moment(startDate);
+        let end = moment(endDate);
+        if (end.isBefore(start) || start.isSame(end)) {
+            return false;
+        } else {
+            return true;
+        }
+    }
 
     let createAndSendEvent = () => {
+        let newEventData = { ...newEvent };
 
-      
-      
-            let newEventData = { ...newEvent };
-
-        if(newEventData.eventTitle !== "" && newEventData.eventStartDate !== null && newEventData.eventEndDate !== null){
-        //let reminderDataToSend = { ...reminderData }; 
-        let tempDate = newEvent.eventStartDate;
-        let finalDate = moment(tempDate).format('MM/DD/YYYY') + " At " + moment(tempDate).format('h:hh A');
-
-        //reminderDataToSend.eventTitle = newEventData.eventTitle;
-        //reminderDataToSend.eventDate = finalDate;
-
-        if (privateChecked) {
-            newEventData.visibility = userEmail;
-        } else (
-            newEventData.visibility = "public"
-        )
-
-        newEventData.owner = userEmail;
-        addEvent(newEventData);
+        if (!isValidDate(newEvent.eventStartDate, newEvent.eventEndDate)) {
+            setAlertMessage("End Date cannot before or equal to the Start Date!");
+            return setOpenSnackbar(true);
         }
 
-        else {
+        if (newEventData.eventTitle !== "" && newEventData.eventStartDate !== null && newEventData.eventEndDate !== null) {
+            if (privateChecked) {
+                newEventData.visibility = userEmail;
+            } else (
+                newEventData.visibility = "public"
+            )
+            newEventData.owner = userEmail;
+            addEvent(newEventData);
+        } else {
+            setAlertMessage("Form is missing information");
             return setOpenSnackbar(true)
         }
-        
-        
-
-
-        
-
-        
-       
-        //Check if remdinder was checked and the data is filled then call the reminder service
-        // if (reminderChecked) {
-        //     if (reminderData.email.length > 0 && reminderData.phoneNumber.length > 0 && reminderData.reminderDateOffset) {
-        //         NotificationService.forwardNotificationSignup(reminderDataToSend);
-        //         console.log('got both');
-        //     } else if (reminderData.email.length > 0 && reminderData.reminderDateOffset) {
-        //         NotificationService.forwardNotificationSignup(reminderDataToSend);
-        //         console.log('got email');
-        //     } else if (reminderData.phoneNumber.length > 0 && reminderData.reminderDateOffset) {
-        //         NotificationService.forwardNotificationSignup(reminderDataToSend);
-        //         console.log('got phone');
-        //     } else {
-        //         console.log('got nothing');
-        //     }
-        // }
 
         setOpen(false)
     }
@@ -170,7 +151,7 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
     let togglePrivateChecked = () => {
         setPrivateChecked(!privateChecked);
     }
-    
+
     let toggleRemindersChecked = () => {
         setReminderChecked(!reminderChecked);
     }
@@ -192,116 +173,116 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
         reminderD.reminderDateOffset = handleTimeOffset.target.value;
         setReminderData(reminderD);
     };
-    
-                  
 
- 
+
+
+
     return (
-     
+
         <div>
-                <Dialog 
-                open={open} 
+            <Dialog
+                open={open}
                 onClose={() => setOpen(false)}
                 fullScreen={fullScreen}
-                >
+            >
 
 
 
 
-                    <DialogTitle className={classes.title}>
-                        {"Add Event"}
+                <DialogTitle className={classes.title}>
+                    {"Add Event"}
 
-                        <IconButton aria-label="close" className={classes.closeButton} onClick={() => setOpen(false)}>
-                            <CloseIcon />
-                            </IconButton>
-                    </DialogTitle>
+                    <IconButton aria-label="close" className={classes.closeButton} onClick={() => setOpen(false)}>
+                        <CloseIcon />
+                    </IconButton>
+                </DialogTitle>
 
-                    <DialogContent >
+                <DialogContent >
 
                     <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils}>
 
-                    <FormGroup row="true" className={classes.row}>
-                        <TextField 
-                        className={classes.etitle} 
-                        label="" 
-                        placeholder="Title" 
-                        value={newEvent.eventTitle} 
-                        onChange={title => handleNewEventTitle(title)} 
-                        fullWidth
-                        required
-        
-                        style={{marginTop:"10px", textSize:"18px"}}
-                        inputProps={{
-                            style: {fontSize: 20} 
-                          }}
-                        />
-                    </FormGroup>
-                    
-                    <FormGroup row="true" className={classes.row}>
-                        <DatePicker
-                            disablePast
-                            disableToolbar
-                            variant="inline"
-                            format="MM/DD/YYYY"
-                            margin="dense"
-                            label="Start Date"
-                            value={newEvent.eventStartDate}
-                            onChange={date => handleNewEventStart(date)}
-                            className={classes.elements}
-                            KeyboardButtonProps={{
-                                'aria-label': 'change date',
-                              }}
-                            required
-                            
-                        />
-                        <DatePicker
-                            disablePast
-                            disableToolbar
-                            variant="inline"
-                            format="MM/DD/YYYY"
-                            margin="dense"
-                            label="End Date"
-                            value={newEvent.eventEndDate}
-                            onChange={date => handleNewEventEnd(date)}
-                            className={classes.elements}
-                            required
-                        /> 
-                    </FormGroup>
-                    
+                        <FormGroup row="true" className={classes.row}>
+                            <TextField
+                                className={classes.etitle}
+                                label=""
+                                placeholder="Title"
+                                value={newEvent.eventTitle}
+                                onChange={title => handleNewEventTitle(title)}
+                                fullWidth
+                                required
+
+                                style={{ marginTop: "10px", textSize: "18px" }}
+                                inputProps={{
+                                    style: { fontSize: 20 }
+                                }}
+                            />
+                        </FormGroup>
+
+                        <FormGroup row="true" className={classes.row}>
+                            <DatePicker
+                                disablePast
+                                disableToolbar
+                                variant="inline"
+                                format="MM/DD/YYYY"
+                                margin="dense"
+                                label="Start Date"
+                                value={newEvent.eventStartDate}
+                                onChange={date => handleNewEventStart(date)}
+                                className={classes.elements}
+                                KeyboardButtonProps={{
+                                    'aria-label': 'change date',
+                                }}
+                                required
+
+                            />
+                            <DatePicker
+                                disablePast
+                                disableToolbar
+                                variant="inline"
+                                format="MM/DD/YYYY"
+                                margin="dense"
+                                label="End Date"
+                                value={newEvent.eventEndDate}
+                                onChange={date => handleNewEventEnd(date)}
+                                className={classes.elements}
+                                required
+                            />
+                        </FormGroup>
+
+
+                        <FormGroup row="true" className={classes.row}>
+                            <TimePicker
+                                autoOk
+                                variant="inline"
+                                disableToolbar
+                                label="Start Time"
+                                value={newEvent.eventStartDate}
+                                onChange={time => handleNewEventStart(time)}
+                                className={classes.elements}
+                                required
+                            />
+                            <TimePicker
+                                autoOk
+                                variant="inline"
+                                disableToolbar
+                                label="End Time"
+                                value={newEvent.eventEndDate}
+                                onChange={time => handleNewEventEnd(time)}
+                                className={classes.elements}
+                                required
+                            />
+                        </FormGroup>
+                    </MuiPickersUtilsProvider>
 
                     <FormGroup row="true" className={classes.row}>
-                    <TimePicker
-                        autoOk
-                        variant="inline"
-                        disableToolbar
-                        label="Start Time"
-                        value={newEvent.eventStartDate}
-                        onChange={time => handleNewEventStart(time)}
-                        className={classes.elements}
-                        required
-                    />
-                    <TimePicker
-                        autoOk
-                        variant="inline"
-                        disableToolbar
-                        label="End Time"
-                        value={newEvent.eventEndDate}
-                        onChange={time => handleNewEventEnd(time)}
-                        className={classes.elements}
-                        required
-                    />
+                        <FormControlLabel
+                            control={<Switch name="check" color="primary" onChange={togglePrivateChecked} checked={privateChecked} />}
+                            label="Private event"
+                            className={classes.elements}
+                        />
                     </FormGroup>
-                </MuiPickersUtilsProvider>
 
-                <FormGroup row="true" className={classes.row}>
-                    <FormControlLabel
-                        control={<Switch name="check" color="primary" onChange={togglePrivateChecked} checked={privateChecked} />}
-                        label="Private event"
-                        className={classes.elements}
-                    />
-                </FormGroup>
-                
-                    
+
                 </DialogContent>
 
 
@@ -312,15 +293,11 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
 
 
                 <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleSnackbarClose}>
-        <Alert onClose={handleSnackbarClose} severity="error">
-          Form is missing information
-        </Alert>
-         </Snackbar>
-                </Dialog>
-
-
-                
-            
+                    <Alert onClose={handleSnackbarClose} severity="error">
+                        {alertMessage}
+                    </Alert>
+                </Snackbar>
+            </Dialog>
 
             {/* <div>
                 {
@@ -346,15 +323,7 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
                         <div></div>
                 }
             </div> */}
-
-       
-
-
-      
-
-       
         </div>
-
     )
 }
 
