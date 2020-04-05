@@ -12,29 +12,67 @@ import Settings from "./Settings"
 import EditEvent from './EditEvent.jsx';
 import moment from 'moment';
 import MyComponents from './GoogleMap.jsx';
+import Fab from '@material-ui/core/Fab';
+import AddIcon from '@material-ui/icons/Add';
+import { makeStyles, useTheme } from '@material-ui/core/styles';
+import { green } from '@material-ui/core/colors';
 
 //setup time localizer
 const localizer = momentLocalizer(moment);
 
+
 const CalendarStyles = {
     calendarContainer: {
+        margin: "auto",
+        marginTop: "10px",
         height: "750px",
-        width: "75%",
-        margin: "0 auto"
+        //height: "calc(946px - 75px)",
+        width: "99.5%",
+        position: "relative"
+        
     },
     editFormContainer: {
         height: "500px",
         width: "500px",
         margin: "0 auto",
         marginTop: "50px"
-    }
+    },
+    fab: {
+        position: 'absolute',
+        bottom: '20px',
+        right: '20px',
+        width: '50px',
+        height: "50px",
+    },
 }
+
+const useStyles = makeStyles((theme) => ({
+    root: {
+      backgroundColor: theme.palette.background.paper,
+      width: 500,
+      position: 'relative',
+      minHeight: 200,
+    },
+    fab: {
+      position: 'absolute',
+      bottom: theme.spacing(2),
+      right: theme.spacing(2),
+    },
+    
+
+  }));
+
+
+
 
 /**
  * This is the shared calendar that displays user data
  * Data is stored in firebase
  */
 class SharedCalendar extends Component {
+
+    
+    
     constructor(props) {
         super(props);
 
@@ -68,6 +106,10 @@ class SharedCalendar extends Component {
         this.sharedCalendarService = new SharedCalendarService();
     }
 
+ 
+    
+
+ 
     /**
      * The initial user data retrival call
      */
@@ -276,7 +318,11 @@ class SharedCalendar extends Component {
     handleChildChecked = () => this.setState({ childChecked: !this.state.childChecked });
     toggleAddEventForm = () => this.setState({ showEventForm: !this.state.showEventForm });
 
+
+
+   
     render() {
+       
         return (
             <div>
                 <div style={CalendarStyles.calendarContainer}>
@@ -288,9 +334,18 @@ class SharedCalendar extends Component {
                         endAccessor="end"
                         onSelectEvent={event => this.handleShow(event)}
                     />
+
+                    <Fab  style={{position:"absolute", right: "5%", bottom: "5%", height: "50px", width:"50px", color:"#ffffff", background:green[500]}} aria-label="add"  onClick={this.toggleAddEventForm}>
+                    <AddIcon />
+                </Fab> 
+              
                 </div>
+
+               
                 <div>
-                    <Button variant="contained" color="primary" onClick={this.toggleAddEventForm}>Add Event</Button>
+                
+
+                    {/* <Button variant="contained" color="primary" onClick={this.toggleAddEventForm}>Add Event</Button> */}
                     {this.state.showEventForm && !this.state.isChild ?
                         <AddEvent
                             addEvent={(newEvent) => this.addEvent(newEvent)}

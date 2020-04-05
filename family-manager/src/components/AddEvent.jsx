@@ -10,15 +10,15 @@ import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MomentUtils from '@date-io/moment';
 import moment from 'moment';
-import { makeStyles, useTheme } from '@material-ui/core/styles';
+import { makeStyles, useTheme, createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import NotificationService from '../Services/NotificationService';
-import { Dialog, DialogContent, DialogTitle, IconButton, Switch, FormGroup, DialogActions, Snackbar, Al } from '@material-ui/core';
+import { Dialog, DialogContent, DialogTitle, IconButton, Switch, FormGroup, DialogActions, Snackbar, } from '@material-ui/core';
 import CloseIcon from '@material-ui/icons/Close';
-import { blue } from '@material-ui/core/colors';
+import { blue, orange } from '@material-ui/core/colors';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import MuiAlert from '@material-ui/lab/Alert';
 
@@ -27,6 +27,9 @@ let tempStyles = {
     minWidth: 120
 }
 
+
+  
+
 const useStyles = makeStyles((theme) => ({
     root: {
       margin: 0,
@@ -34,6 +37,7 @@ const useStyles = makeStyles((theme) => ({
     },
     title: {
         background: 'linear-gradient(45deg, #2196F3 10%, #21CBF3 90%)',
+        //background: theme.primary,
         color: '#FFFFFF'
     },
 
@@ -67,12 +71,13 @@ const useStyles = makeStyles((theme) => ({
 
 function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
 
-    let [newEvent, setNewEvent] = React.useState({ eventTitle: "My New Event", eventStartDate: null, eventEndDate: null, visibility: "", owner: "", eventStartZip: "", eventEndZip: ""});
+    let [newEvent, setNewEvent] = React.useState({ eventTitle: "", eventStartDate: moment().format("ll"), eventEndDate: moment().format("ll"), visibility: "", owner: "", eventStartZip: "", eventEndZip: ""});
     let [reminderData, setReminderData] = React.useState({ phoneNumber: "", email: "", eventTitle: "", reminderDateOffset: "", eventDate: ""});
     let [reminderChecked, setReminderChecked] = React.useState(false);
     let [privateChecked, setPrivateChecked] = React.useState(false);
     let [open, setOpen] = useState(true)
     let [openSnackbar, setOpenSnackbar] = useState(false)
+    const classes = useStyles();
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('xs'));
 
@@ -190,9 +195,9 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
     
                   
 
-    const classes = useStyles();
+ 
     return (
-        
+     
         <div>
                 <Dialog 
                 open={open} 
@@ -204,7 +209,7 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
 
 
                     <DialogTitle className={classes.title}>
-                        {"New Event"}
+                        {"Add Event"}
 
                         <IconButton aria-label="close" className={classes.closeButton} onClick={() => setOpen(false)}>
                             <CloseIcon />
@@ -224,27 +229,37 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
                         onChange={title => handleNewEventTitle(title)} 
                         fullWidth
                         required
+        
+                        style={{marginTop:"10px", textSize:"18px"}}
+                        inputProps={{
+                            style: {fontSize: 20} 
+                          }}
                         />
                     </FormGroup>
                     
                     <FormGroup row="true" className={classes.row}>
                         <DatePicker
                             disablePast
+                            disableToolbar
                             variant="inline"
                             format="MM/DD/YYYY"
-                            margin="normal"
+                            margin="dense"
                             label="Start Date"
                             value={newEvent.eventStartDate}
                             onChange={date => handleNewEventStart(date)}
                             className={classes.elements}
+                            KeyboardButtonProps={{
+                                'aria-label': 'change date',
+                              }}
                             required
                             
                         />
                         <DatePicker
                             disablePast
+                            disableToolbar
                             variant="inline"
                             format="MM/DD/YYYY"
-                            margin="normal"
+                            margin="dense"
                             label="End Date"
                             value={newEvent.eventEndDate}
                             onChange={date => handleNewEventEnd(date)}
@@ -257,6 +272,8 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
                     <FormGroup row="true" className={classes.row}>
                     <TimePicker
                         autoOk
+                        variant="inline"
+                        disableToolbar
                         label="Start Time"
                         value={newEvent.eventStartDate}
                         onChange={time => handleNewEventStart(time)}
@@ -265,6 +282,8 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
                     />
                     <TimePicker
                         autoOk
+                        variant="inline"
+                        disableToolbar
                         label="End Time"
                         value={newEvent.eventEndDate}
                         onChange={time => handleNewEventEnd(time)}
@@ -275,13 +294,8 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
                 </MuiPickersUtilsProvider>
 
                 <FormGroup row="true" className={classes.row}>
-                    {/* <FormControlLabel
-                        control={<Switch name="check" color="Primary" onChange={toggleRemindersChecked} checked={reminderChecked} />}
-                        label="Reminders"
-                        className={classes.elements}
-                    /> */}
                     <FormControlLabel
-                        control={<Switch name="check" color="Primary" onChange={togglePrivateChecked} checked={privateChecked} />}
+                        control={<Switch name="check" color="primary" onChange={togglePrivateChecked} checked={privateChecked} />}
                         label="Private event"
                         className={classes.elements}
                     />
@@ -340,6 +354,7 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
 
        
         </div>
+
     )
 }
 

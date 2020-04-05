@@ -15,7 +15,8 @@ import {
     TextField, FormControl, Select,
     InputLabel, Dialog, DialogActions,
     DialogContent, DialogTitle, Button,
-    List, Box, Card, CardHeader, CardContent, IconButton
+    List, Box, Card, CardHeader, CardContent, IconButton,
+    Typography, FormControlLabel
   } from '@material-ui/core';
 
   import ChildTaskList from "./ChildTaskList"
@@ -24,6 +25,11 @@ import {
   import { green } from '@material-ui/core/colors';
   import Tooltip from '@material-ui/core/Tooltip';
 
+  import ExpansionPanel from '@material-ui/core/ExpansionPanel';
+  import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
+  import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
+  
+  import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 
 function ChildrenTasks(props){
 
@@ -104,12 +110,12 @@ function ChildrenTasks(props){
 
             let data = {email: formAssigned, chore: formChore, date: formDate};
 
-                ChildrenTasks.length > 0 ? 
+                childrenTasks.length > 0 ? 
                 setChildTask([...childrenTasks, data])
                     :
-                setChildTask([data]);
+                setChildTask([data,]);
 
-            console.log([{email: formAssigned, chore: formChore, date: formDate}]);
+            console.log("Adding chore to DB: ", [{email: formAssigned, chore: formChore, date: formDate}]);
             submitToDB(data)
 
         }
@@ -120,7 +126,7 @@ function ChildrenTasks(props){
         setFormAssigned("default")
         setFormDate(moment().format('ll'))
         handleClose()
-        return
+   
     }
 
     function submitToDB(data) {
@@ -128,6 +134,8 @@ function ChildrenTasks(props){
             const itemList = db.collection("UserCalendarData").doc(fireDocId).update({
                 childrenTasks: firebase.firestore.FieldValue.arrayUnion(data)
             });
+
+            console.log("All Chores: ", childrenTasks)
     }
     
 
@@ -166,25 +174,81 @@ function ChildrenTasks(props){
   
     
     return(
+        
         <div>
             { isMasterUser ? 
            (   
-                <Box className="box">
-                <Card className="cardChore" variant="outlined">
-                    <CardHeader
-                        title="Chore List"
+                // <Box className="box">
+                // <Card className="cardChore" variant="outlined">
+                //     <CardHeader
+                //         title="Chore List"
 
-                        action={
-                        <Tooltip title="New Chore" aria-label="add">
-                            <IconButton aria-label="settings" onClick={handleClickOpen} style={{ color: green[500] }}>
-                              <AddCircleIcon />
-                            </IconButton>
-                        </Tooltip>
-                        }
-                    />
-                <CardContent><List>{childList}</List></CardContent>
-                    </Card>
-                 </Box>
+                //         action={
+                //         <Tooltip title="New Chore" aria-label="add">
+                //             <IconButton aria-label="settings" onClick={handleClickOpen} style={{ color: green[500] }}>
+                //               <AddCircleIcon />
+                //             </IconButton>
+                //         </Tooltip>
+                //         }
+                //     />
+                // <CardContent><List>{childList}</List></CardContent>
+                //     </Card>
+                //  </Box>
+
+            <Box className="box" >
+
+                <ExpansionPanel elevation={0} >
+                <ExpansionPanelSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls="panel1a-content"
+                id="panel1a-header"
+                >
+
+                {/* <FormControlLabel
+                aria-label="Acknowledge"
+                variant="outlined"
+                labelPlacement="start"
+                label="Chore List"
+                style={{height: "25px"}}
+
+
+                control={<IconButton onClick={handleClickOpen} aria-label="settings" 
+                style={{ color: green[500], display:"inline-block", postion: "absolute", left: "90px" }}>
+                <AddCircleIcon />
+                </IconButton>}
+                
+                /> */}
+
+              
+               <Typography 
+                style={{flexBasis: '66.66%',
+                flexShrink: 0,}}
+    
+                >Chore List</Typography>
+                 <div style={{height:"25px"}}>
+                 <Tooltip title="New Chore" aria-label="add">
+                    <IconButton aria-label="settings"  onClick={handleClickOpen} 
+                    style={{ color: green[500], postion: "absolute", top: "-10px", left: "40px" }}>
+                        <AddCircleIcon />
+                    </IconButton>
+                    </Tooltip>
+               </div>
+                
+         
+                
+                </ExpansionPanelSummary>
+                <ExpansionPanelDetails>
+            <Box className="inner-box">
+             
+                    <List>{childList}</List>
+             </Box>
+            </ExpansionPanelDetails>
+          </ExpansionPanel>
+
+                </Box>
+
+
+
            )
                 :
                 null

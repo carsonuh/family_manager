@@ -5,8 +5,15 @@ import "./shoppingList.css"
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import Box from '@material-ui/core/Box';
-import { CardHeader, IconButton, Tooltip, CardActions, Button, TextField } from "@material-ui/core";
+import { CardHeader, IconButton, Tooltip, CardActions, Button, TextField, Typography } from "@material-ui/core";
 import AddIcon from '@material-ui/icons/Add';
+
+
+import ExpansionPanel from '@material-ui/core/ExpansionPanel';
+import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
+import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
+
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 
 class ShoppingList extends Component {
 
@@ -188,24 +195,28 @@ class ShoppingList extends Component {
 
         return (
 
+
+
             <Box className="box">
-                <Card className="card" variant="outlined">
-                    <CardHeader
-                        title="Shopping List"
-                    />
-                    <CardContent>
-                        {itemCB}
-                    </CardContent>
-                    <CardActions>
-
-                        <TextField id="addItem" size="small" label="Add Item" variant="outlined" value={this.state.newItem} onChange={this.handleChange} />
-                        <Button onClick={() => this.handleClick(this.state.newItem)} size="small">
-                            Go
-                    </Button>
-
-                    </CardActions>
-                </Card>
+                <ExpansionPanel elevation={0}>
+            <ExpansionPanelSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+              <Typography >Shopping List</Typography>
+            </ExpansionPanelSummary>
+            <ExpansionPanelDetails>
+            <Box className="inner-box">
+             
+           {itemCB}
+              <TextField id="addItem" size="small" label="Add Item" variant="outlined" value={this.state.newItem} onChange={this.handleChange} />
+                <Button onClick={() => this.handleClick(this.state.newItem)} size="small">Go</Button>
+             </Box>
+            </ExpansionPanelDetails>
+          </ExpansionPanel>
             </Box>
+
         )
     }
 }

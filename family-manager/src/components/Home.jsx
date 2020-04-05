@@ -6,7 +6,8 @@ import ShoppingList from './ShoppingList.jsx';
 import ChildrenTasks from './ChildrenTasks.jsx';
 import Grid from '@material-ui/core/Grid';
 import Head from "./NavBar.jsx"
-
+import { teal } from '@material-ui/core/colors';
+import {createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 
 /**
  * Home Component, Displays the home page and calendar component
@@ -48,19 +49,32 @@ import Head from "./NavBar.jsx"
             });
     }
 
+    const myTheme = createMuiTheme({
+        palette: {
+          primary: {
+            main: teal[600],
+          },
+          secondary: {
+              main: "#f7b82f"
+          }
+        },
+      });
+
     /**
      * Renders a blank calendar when not logged in, renders calendar with user data when logged in
      */
         return (
+           
             <div>
-                
-                {user ?
+                 <ThemeProvider theme={myTheme}>
+                {user !== null ?
                     <div>
-                        <Head loginAction={logout} login={true} />
+                        
+                        <Head loginAction={logout} login={true} userEmail={user.email} usersName={user.displayName} theme={myTheme}/>
                         {/* <button onClick={this.logout}>Log Out</button> */}
-                        <SharedCalendar userEmail={user.email} usersName={user.displayName}/>
+                        {/* <SharedCalendar userEmail={user.email} usersName={user.displayName}/> */}
 
-                        <Grid container spacing={2}>
+                        {/* <Grid container spacing={2}>
                             <Grid item xs={4}>
                                 <ShoppingList userEmail={user.email}/>
                             </Grid>
@@ -68,7 +82,7 @@ import Head from "./NavBar.jsx"
                             <Grid item xs={4}>
                             <ChildrenTasks userEmail={user.email}/>
                             </Grid>
-                        </Grid>
+                        </Grid> */}
                         
                     </div>
                 :
@@ -78,6 +92,7 @@ import Head from "./NavBar.jsx"
                         {/*<EmptyCalendar />*/}
                     </div>
                 }   
+                </ThemeProvider>
             </div>
         )
 }

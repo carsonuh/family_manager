@@ -113,6 +113,7 @@ export default class SharedCalendarService {
                 events: [],
                 sharedUsers: [],
                 children: [],
+                childrenTasks: [],
                 shoppingList: []
             }).then((docRef) => {
                 // this.setState({ fireDocId: docRef.id, masterUser: true });

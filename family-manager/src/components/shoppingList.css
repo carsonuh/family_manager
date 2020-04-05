@@ -1,8 +1,15 @@
+
 .box {
-    width: 200px;
-    margin: 25px 0px 0px 100px;
     padding: 5px;
+    width: 300px;
 }
+
+.inner-box {
+    margin-top: -20px;
+    padding: 5px;
+    width: 250px;
+}
+
 
 .card {
     width: 250px;
@@ -15,4 +22,9 @@
 .title {
     font-size: 20px;
     font-weight: 700;
+}
+
+.MuiCard-root	{
+    outline: 0;
+    border:0;
 }

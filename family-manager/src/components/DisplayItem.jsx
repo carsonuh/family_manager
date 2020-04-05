@@ -8,11 +8,16 @@ function DisplayItem(props) {
     const completedStyle = {
         fontStyle: "italic",
         color: "#cdcdcd",
-        textDecoration: "line-through"
+        textDecoration: "line-through",
+        display: "block"
     }
+
+    const inline = {
+    display: "block",
+  }
     return(   
   
-      <p style={props.completed ? completedStyle: null}>
+      <div style={props.completed ? completedStyle: inline}>
         <FormControlLabel
           value={props.item}
           control={
@@ -23,8 +28,9 @@ function DisplayItem(props) {
           />}
           label={props.item}
          />
-        {/* <Divider /> */}
-        </p>
+        <Divider />
+        <br />
+        </div>
         
     )
 }
