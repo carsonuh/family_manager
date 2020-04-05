@@ -17,7 +17,8 @@ import EditIcon from '@material-ui/icons/Edit';
 import Weather from './Weather.jsx';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import GMap from './GoogleMap.jsx';
-
+import MuiAlert from '@material-ui/lab/Alert';
+import Snackbar from '@material-ui/core/Snackbar';
 
 import {
     MuiPickersUtilsProvider,
@@ -25,6 +26,7 @@ import {
     TimePicker
 } from '@material-ui/pickers';
 import { makeStyles, useTheme } from '@material-ui/core';
+import { useEffect } from 'react';
 
 
 let useStyles = makeStyles({
@@ -82,9 +84,24 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
     let [reminderData, setReminderData] = React.useState({ phoneNumber: "", email: "", eventTitle: "", reminderDateOffset: "", eventDate: "" });
     let [privateChecked, setPrivateChecked] = React.useState(userEmail == userEventData.visibility);
     let [detailsMode, setDetailsMode] = React.useState(true);
+    let [openSnackbar, setOpenSnackbar] = React.useState(false)
+    let [buttonVisibility, setButtonVisibility] = React.useState(true);
+    let [mapVisible, setMapVisible] = React.useState(false);
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('xs'));
     const classes = useStyles();
+
+    useEffect(() => {
+        editButtonValid();
+        shouldMapDisplay();
+    }, []);
+
+    const shouldMapDisplay = () => {
+        let dateNow = moment();
+        if (userEventData.startZip !== userEventData.endZip && dateNow.isBefore(userEvent.eventEnd)) {
+            setMapVisible(true);
+        }
+    }
 
     const handleStartDateChange = (e) => {
         let start = new Date(e);
@@ -117,6 +134,17 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
         setUserEvent(userEventData);
     }
 
+    function isValidDate(startDate, endDate) {
+        let start = moment(startDate);
+        let end = moment(endDate);
+        console.log(end.isBefore(start));
+        if (end.isBefore(start)) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     const editEvent = () => {
         let updatedEvent = { ...userEvent };
 
@@ -126,6 +154,10 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
         reminderDataToSend.eventTitle = updatedEvent.eventTitle;
         reminderDataToSend.eventDate = finalDate;
 
+        if (!isValidDate(updatedEvent.eventStart, updatedEvent.eventEnd)) {
+            setOpenSnackbar(true);
+            return;
+        }
 
         if (privateChecked) {
             console.log('here')
@@ -134,20 +166,20 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
             updatedEvent.visibility = "public"
         }
 
-        if (reminderChecked) {
-            if (reminderData.email.length > 0 && reminderData.phoneNumber.length > 0 && reminderData.reminderDateOffset) {
-                NotificationService.forwardNotificationSignup(reminderDataToSend);
-                console.log('got both');
-            } else if (reminderData.email.length > 0 && reminderData.reminderDateOffset) {
-                NotificationService.forwardNotificationSignup(reminderDataToSend);
-                console.log('got email');
-            } else if (reminderData.phoneNumber.length > 0 && reminderData.reminderDateOffset) {
-                NotificationService.forwardNotificationSignup(reminderDataToSend);
-                console.log('got phone');
-            } else {
-                console.log('got nothing');
-            }
-        }
+        // if (reminderChecked) {
+        //     if (reminderData.email.length > 0 && reminderData.phoneNumber.length > 0 && reminderData.reminderDateOffset) {
+        //         NotificationService.forwardNotificationSignup(reminderDataToSend);
+        //         console.log('got both');
+        //     } else if (reminderData.email.length > 0 && reminderData.reminderDateOffset) {
+        //         NotificationService.forwardNotificationSignup(reminderDataToSend);
+        //         console.log('got email');
+        //     } else if (reminderData.phoneNumber.length > 0 && reminderData.reminderDateOffset) {
+        //         NotificationService.forwardNotificationSignup(reminderDataToSend);
+        //         console.log('got phone');
+        //     } else {
+        //         console.log('got nothing');
+        //     }
+        // }
         editCallback(updatedEvent);
     }
 
@@ -165,6 +197,25 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
 
     const toggleDetailsMode = () => setDetailsMode(!detailsMode);
 
+    function editButtonValid() {
+        let dateNow = moment();
+        if (!dateNow.isBefore(userEvent.eventEnd)) {
+            setButtonVisibility(false);
+        }
+    }
+
+    function Alert(props) {
+        return <MuiAlert elevation={6} variant="filled" {...props} />;
+    }
+
+    const handleSnackbarClose = (event, reason) => {
+        if (reason === 'clickaway') {
+          return;
+        }
+    
+        setOpenSnackbar(false);
+      };
+
     return (
         <div>
             <Dialog onClose={handleClose} open={true} fullScreen={fullScreen}>
@@ -174,10 +225,10 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                         <CloseIcon />
                     </IconButton>
                     <IconButton className={classes.deleteButton} onClick={deleteEvent}>
-                        <DeleteIcon />
+                        <DeleteIcon visibility={buttonVisibility === true ? 'visible' : 'hidden'} />
                     </IconButton>
                     <IconButton className={classes.editButton} onClick={toggleDetailsMode}>
-                        <EditIcon />
+                        <EditIcon visibility={buttonVisibility === true ? 'visible' : 'hidden'} />
                     </IconButton>
                 </DialogTitle>
                 <DialogContent style={{justifyContent: 'center'}}>
@@ -284,10 +335,12 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                             :
                             <div>
                             </div>
-                    }
+                    } */}
                     <div>
+                    {console.log(mapVisible)}
                         {
-                            detailsMode === true ?
+                            
+                            detailsMode === true && mapVisible === true ?
                                 <div>
                                     <GMap startZip={userEvent.startZip} endZip={userEvent.endZip} />
                                 </div>
@@ -295,7 +348,7 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                                 <div>
                                 </div>
                         }
-                    </div> */}
+                    </div>
                 </DialogContent>
                 <DialogActions style={{justifyContent: 'center'}}>
                             <Button 
@@ -305,6 +358,11 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                                 onClick={editEvent}>Submit
                             </Button>
                 </DialogActions>
+                <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleSnackbarClose}>
+        <Alert onClose={handleSnackbarClose} severity="error">
+          End Date cannot be before the Start Date!
+        </Alert>
+         </Snackbar>
             </Dialog>
         </div>
     )
