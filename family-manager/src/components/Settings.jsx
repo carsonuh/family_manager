@@ -20,7 +20,8 @@ import {
 } from "@material-ui/core"
 import AddIcon from '@material-ui/icons/Add';
 import { green } from '@material-ui/core/colors';
-
+import SharedCalendarService from "../Services/SharedCalendarService"
+import SettingsIcon from '@material-ui/icons/Settings';
 
 const useStyles = makeStyles((theme) => ({
     appBar: {
@@ -48,19 +49,31 @@ function Settings(props) {
 
     //const[masterUser, setMasterUser] = useState("")
     const [email] = useState(props.userEmail)
-    const [fireDocId] = useState(props.fbID);
+    const [fireDocId, setFireDocID] = useState(null);
     const [sharedUsers, setSharedUsers] = useState([])
     const [childUsers, setChildUsers] = useState([])
     const [isMasterUser, setMasterUser] = useState(false)
     const [childTasks, setChildTasks] = useState([])
-
     const [open, setOpen] = useState(false);
-
     const [newUserEmail, setUserEmail] = useState("");
     const [newUserIsChild, setNewUserIsChild] = useState(false)
-
+    
+ 
 
     let getSettings = new SettingService()
+    let verifyUser = new SharedCalendarService()
+
+    useEffect(() => {
+      verifyUser.checkIfUserExists(userExists, email);
+    },[]);
+
+
+    let userExists = (e, fireDocId) => {
+      if (e) {
+          setFireDocID(fireDocId );
+          getSettings.fetchUserData(true, email, loadData,fireDocId);
+      } 
+    }
 
 
     const classes = useStyles();
@@ -82,12 +95,6 @@ function Settings(props) {
   const handleUserClose = () => {
     setNewUserOpen(false);
   };
-
-
-    useEffect(() => {
-        getSettings.fetchUserData(true, email, loadData,fireDocId);
-      },[]);
-
 
     // callback: load data from database
     let loadData = (info) => {
@@ -174,7 +181,12 @@ function Settings(props) {
     let child = childUsers.map( (u, index) => <SettingsDialog key={index} email={u} type="child" onDeleteClick={deleteTask} />)
     return(
         <div>
-      <Button variant="outlined" color="primary" onClick={handleClickOpen}>
+      <Button variant="outlined" 
+      startIcon={<SettingsIcon />}
+      fullWidth
+      variant="text"
+
+      onClick={handleClickOpen}>
         Settings
       </Button>
       <Dialog fullScreen open={open} onClose={handleClose} >
