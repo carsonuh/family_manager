@@ -11,11 +11,17 @@ import AddEvent from './AddEvent.jsx';
 import Settings from "./Settings"
 import EditEvent from './EditEvent.jsx';
 import moment from 'moment';
-import MyComponents from './GoogleMap.jsx';
 import Fab from '@material-ui/core/Fab';
 import AddIcon from '@material-ui/icons/Add';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { green } from '@material-ui/core/colors';
+import SpeedDial from '@material-ui/lab/SpeedDial';
+import SpeedDialIcon from '@material-ui/lab/SpeedDialIcon';
+import SpeedDialAction from '@material-ui/lab/SpeedDialAction';
+import NotificationsIcon from '@material-ui/icons/Notifications';
+import Reminders from './Reminders.jsx';
+
+
 
 //setup time localizer
 const localizer = momentLocalizer(moment);
@@ -25,42 +31,37 @@ const CalendarStyles = {
     calendarContainer: {
         margin: "auto",
         marginTop: "10px",
-        height: "750px",
+        height: window.innerHeight-75,
         //height: "calc(946px - 75px)",
         width: "99.5%",
-        position: "relative"
-        
-    },
-    editFormContainer: {
-        height: "500px",
-        width: "500px",
-        margin: "0 auto",
-        marginTop: "50px"
-    },
-    fab: {
-        position: 'absolute',
-        bottom: '20px',
-        right: '20px',
-        width: '50px',
-        height: "50px",
     },
 }
 
 const useStyles = makeStyles((theme) => ({
     root: {
-      backgroundColor: theme.palette.background.paper,
-      width: 500,
-      position: 'relative',
-      minHeight: 200,
+        backgroundColor: theme.palette.background.paper,
+        width: 500,
+        position: 'relative',
+        minHeight: 200,
     },
     fab: {
-      position: 'absolute',
-      bottom: theme.spacing(2),
-      right: theme.spacing(2),
+        position: 'absolute',
+        bottom: theme.spacing(2),
+        right: theme.spacing(2),
     },
-    
+    speedDial: {
+        position: 'absolute',
+        '&.MuiSpeedDial-directionUp': {
+            bottom: theme.spacing(2),
+            right: theme.spacing(2),
+        },
+    }
+}));
 
-  }));
+let actions = [
+    { icon: <AddIcon />, name: 'Add Event', operation: 'AddEvent' },
+    { icon: <NotificationsIcon />, name: 'Reminders', operation: 'AddRem' },
+];
 
 
 
@@ -71,8 +72,8 @@ const useStyles = makeStyles((theme) => ({
  */
 class SharedCalendar extends Component {
 
-    
-    
+
+
     constructor(props) {
         super(props);
 
@@ -98,6 +99,8 @@ class SharedCalendar extends Component {
             childChecked: false,
             isChild: false,
             showEventForm: false,
+            showReminderForm: false,
+            open: false
         };
 
         this.updateStorage = this.updateStorage.bind(this);
@@ -105,11 +108,7 @@ class SharedCalendar extends Component {
 
         this.sharedCalendarService = new SharedCalendarService();
     }
-
- 
     
-
- 
     /**
      * The initial user data retrival call
      */
@@ -158,6 +157,7 @@ class SharedCalendar extends Component {
     isChild = (returnedData) => {
         if (returnedData) {
             this.setState({ isChild: true });
+            this.filterActions();
         } else {
             this.setState({ isChild: false });
         }
@@ -277,8 +277,9 @@ class SharedCalendar extends Component {
                     endZip
                 }
             ]
-        }, () => console.log(this.state.events));
+        });
         this.updateStorage({ title, start, end, id, visibility, owner, startZip, endZip });
+        this.setState({showEventForm: false})
     }
 
     shareCalendar = (e) => {
@@ -317,14 +318,30 @@ class SharedCalendar extends Component {
     handleEmailShare = (e) => this.setState({ emailToShare: e.target.value })
     handleChildChecked = () => this.setState({ childChecked: !this.state.childChecked });
     toggleAddEventForm = () => this.setState({ showEventForm: !this.state.showEventForm });
+    toggleReminderForm = () => this.setState({showReminderForm: false});
 
+    toggleSpeedClose = () => this.setState({ open: false });
+    toggleSpeedOpen = () => this.setState({ open: true });
 
+    handleSpeed(e, operation) {
+        if (operation === "AddEvent") {
+            this.setState({showEventForm: true})
+        } else {
+            this.setState({showReminderForm: true})
+        }
+        this.setState({open: false});
+    }
 
-   
+    filterActions() {
+        if (this.state.isChild === true) {
+            actions.shift();
+        }
+    }
+
     render() {
-       
+
         return (
-            <div>
+            <div style={{height: '100%', width: '100%'}}>
                 <div style={CalendarStyles.calendarContainer}>
                     <Calendar
                         // selectable
@@ -333,81 +350,79 @@ class SharedCalendar extends Component {
                         startAccess="start"
                         endAccessor="end"
                         onSelectEvent={event => this.handleShow(event)}
+                        views={['month']}
                     />
 
-                    <Fab  style={{position:"absolute", right: "5%", bottom: "5%", height: "50px", width:"50px", color:"#ffffff", background:green[500]}} aria-label="add"  onClick={this.toggleAddEventForm}>
-                    <AddIcon />
-                </Fab> 
-              
-                </div>
-
-               
-                <div>
-                
-
-                    {/* <Button variant="contained" color="primary" onClick={this.toggleAddEventForm}>Add Event</Button> */}
-                    {this.state.showEventForm && !this.state.isChild ?
-                        <AddEvent
-                            addEvent={(newEvent) => this.addEvent(newEvent)}
-                            toggleAddEvent={this.toggleAddEventForm}
-                            userEmail={this.state.userEmail}
-                        />
-                        :
-                        <div></div>
-                    }
-                </div>
-                <div>
-                    {this.state.showEditForm && !this.state.isChild ?
-                        <div>
-                            <EditEvent
-                                key={this.state.userEventId}
-                                userEventData={{
-                                    eventStart: this.state.userEventStart,
-                                    eventEnd: this.state.userEventEnd,
-                                    eventTitle: this.state.userEventTitle,
-                                    id: this.state.userEventId,
-                                    owner: this.state.userEventOwner,
-                                    visibility: this.state.userEventVisbility,
-                                    endZip: this.state.endZip,
-                                    startZip: this.state.startZip
-                                }}
-                                editCallback={event => this.editEventInStorage(event)}
-                                deleteCallback={event => this.deleteEventInStorage(event)}
-                                closeCallback={this.handleClose}
-                                userEmail={this.state.userEmail}
-                            />
-                        </div>
-                        :
-                        <div></div>
-                    }
-                </div>
-                <div>
-                    {
-                        this.state.masterUser ?
-
-                            <div>
-                            <button variant="contained" color="primary" onClick={this.toggleShareField}>Share Calendar</button>
-                            <Settings userEmail={this.state.userEmail} fbID={this.state.fireDocId}/>
-                            </div>
-                            : 
-                            <div></div>
-                    }
-                    {
-                        this.state.showShareField ?
-                            <div>
-                                <TextField label="Enter Email to Share" onChange={emailToShare => this.handleEmailShare(emailToShare)} />
-                                <Button variant="contained" color="primary" onClick={this.shareCalendar}>Share</Button>
-                                <FormControlLabel
-                                    control={<Checkbox checked={this.state.childChecked} onChange={this.handleChildChecked} name="check" />}
-                                    label="Is this a child?"
+                    <div style={{position:'absolute', width: '50px', height: '50px', top: '75%', left: '80%'}}>
+                        <SpeedDial
+                            ariaLabel="SpeedDial example"
+                            icon={<SpeedDialIcon />}
+                            onClose={this.toggleSpeedClose}
+                            onOpen={this.toggleSpeedOpen}
+                            open={this.state.open}
+                            direction={'up'}
+                        >
+                            {actions.map((action) => (
+                                <SpeedDialAction
+                                    key={action.name}
+                                    icon={action.icon}
+                                    tooltipTitle={action.name}
+                                    onClick={(e) => {
+                                        this.handleSpeed(e, action.operation)
+                                    }}
                                 />
-                            </div>
-                            :
-                            <div></div>
-                    }
+                            ))}
+                        </SpeedDial>
                 </div>
             </div>
-
+            <div>
+                {this.state.showEventForm && !this.state.isChild ?
+                    <AddEvent
+                        addEvent={(newEvent) => this.addEvent(newEvent)}
+                        toggleAddEventForm={this.toggleAddEventForm}
+                        userEmail={this.state.userEmail}
+                    />
+                    :
+                    <div></div>
+                }
+            </div>
+            <div>
+                {this.state.showReminderForm ?
+                    <Reminders
+                        toggleReminderForm={this.toggleReminderForm}
+                        events={this.state.events}
+                    />
+                    :
+                    <div></div>
+                }
+            </div>
+            <div>
+                {this.state.showEditForm ?
+                    <div>
+                        <EditEvent
+                            key={this.state.userEventId}
+                            userEventData={{
+                                eventStart: this.state.userEventStart,
+                                eventEnd: this.state.userEventEnd,
+                                eventTitle: this.state.userEventTitle,
+                                id: this.state.userEventId,
+                                owner: this.state.userEventOwner,
+                                visibility: this.state.userEventVisbility,
+                                endZip: this.state.endZip,
+                                startZip: this.state.startZip
+                            }}
+                            editCallback={event => this.editEventInStorage(event)}
+                            deleteCallback={event => this.deleteEventInStorage(event)}
+                            closeCallback={this.handleClose}
+                            userEmail={this.state.userEmail}
+                            isChild={this.state.isChild}
+                        />
+                    </div>
+                    :
+                    <div></div>
+                }
+            </div>
+        </div >
         )
     }
 }
