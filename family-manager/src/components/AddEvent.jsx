@@ -69,11 +69,9 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
+function AddEvent({ addEvent, toggleAddEventForm, userEmail }) {
 
     let [newEvent, setNewEvent] = React.useState({ eventTitle: "", eventStartDate: moment().format("ll"), eventEndDate: moment().format("ll"), visibility: "", owner: "", eventStartZip: "", eventEndZip: "" });
-    let [reminderData, setReminderData] = React.useState({ phoneNumber: "", email: "", eventTitle: "", reminderDateOffset: "", eventDate: "" });
-    let [reminderChecked, setReminderChecked] = React.useState(false);
     let [privateChecked, setPrivateChecked] = React.useState(false);
     let [open, setOpen] = useState(true)
     let [openSnackbar, setOpenSnackbar] = useState(false)
@@ -152,30 +150,10 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
         setPrivateChecked(!privateChecked);
     }
 
-    let toggleRemindersChecked = () => {
-        setReminderChecked(!reminderChecked);
+    const toggleClose = () => {
+        toggleAddEventForm();
+        setOpen(false);
     }
-
-    let handleReminderEmail = email => {
-        let reminderD = { ...reminderData };
-        reminderD.email = email.target.value;
-        setReminderData(reminderD);
-    }
-
-    let handleReminderPhone = phoneNumber => {
-        let reminderD = { ...reminderData };
-        reminderD.phoneNumber = phoneNumber.target.value;
-        setReminderData(reminderD);
-    }
-
-    const handleTimeOffset = handleTimeOffset => {
-        let reminderD = { ...reminderData };
-        reminderD.reminderDateOffset = handleTimeOffset.target.value;
-        setReminderData(reminderD);
-    };
-
-
-
 
     return (
 
@@ -184,15 +162,12 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
                 open={open}
                 onClose={() => setOpen(false)}
                 fullScreen={fullScreen}
+                disableBackdropClick
             >
-
-
-
-
                 <DialogTitle className={classes.title}>
                     {"Add Event"}
 
-                    <IconButton aria-label="close" className={classes.closeButton} onClick={() => setOpen(false)}>
+                    <IconButton aria-label="close" className={classes.closeButton} onClick={() => toggleClose()}>
                         <CloseIcon />
                     </IconButton>
                 </DialogTitle>
@@ -201,7 +176,7 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
 
                     <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils}>
 
-                        <FormGroup row="true" className={classes.row}>
+                        <FormGroup row={true} className={classes.row}>
                             <TextField
                                 className={classes.etitle}
                                 label=""
@@ -218,7 +193,7 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
                             />
                         </FormGroup>
 
-                        <FormGroup row="true" className={classes.row}>
+                        <FormGroup row={true} className={classes.row}>
                             <DatePicker
                                 disablePast
                                 disableToolbar
@@ -229,9 +204,9 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
                                 value={newEvent.eventStartDate}
                                 onChange={date => handleNewEventStart(date)}
                                 className={classes.elements}
-                                KeyboardButtonProps={{
-                                    'aria-label': 'change date',
-                                }}
+                                // KeyboardButtonProps={{
+                                //     'aria-label': 'change date',
+                                // }}
                                 required
 
                             />
@@ -250,7 +225,7 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
                         </FormGroup>
 
 
-                        <FormGroup row="true" className={classes.row}>
+                        <FormGroup row={true} className={classes.row}>
                             <TimePicker
                                 autoOk
                                 variant="inline"
@@ -274,7 +249,7 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
                         </FormGroup>
                     </MuiPickersUtilsProvider>
 
-                    <FormGroup row="true" className={classes.row}>
+                    <FormGroup row={true} className={classes.row}>
                         <FormControlLabel
                             control={<Switch name="check" color="primary" onChange={togglePrivateChecked} checked={privateChecked} />}
                             label="Private event"
@@ -290,39 +265,12 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
                     <Button variant="contained" className={classes.submit} color="secondary" onClick={createAndSendEvent}>Submit</Button>
                 </DialogActions>
 
-
-
                 <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleSnackbarClose}>
                     <Alert onClose={handleSnackbarClose} severity="error">
                         {alertMessage}
                     </Alert>
                 </Snackbar>
             </Dialog>
-
-            {/* <div>
-                {
-                    reminderChecked === true ?
-                        <form>
-                            <TextField label="Email" value={reminderData.email} onChange={handleReminderEmail} />
-                            <TextField label="Phone Number" value={reminderData.phoneNumber} onChange={handleReminderPhone} />
-                            <FormControl style={tempStyles}>
-                                <InputLabel id="demo-simple-select-label">Remind Me In</InputLabel>
-                                <Select
-                                    labelId="demo-simple-select-label"
-                                    id="demo-simple-select"
-                                    value={reminderData.reminderDateOffset}
-                                    onChange={handleTimeOffset}
-                                >
-                                    <MenuItem value={1}>10 Minutes</MenuItem>
-                                    <MenuItem value={2}>1 Hour</MenuItem>
-                                    <MenuItem value={3}>1 Day</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </form>
-                        :
-                        <div></div>
-                }
-            </div> */}
         </div>
     )
 }

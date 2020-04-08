@@ -9,7 +9,6 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
-import NotificationService from '../Services/NotificationService';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -71,22 +70,21 @@ let useStyles = makeStyles({
         width: '49%'
     },
     secondElementWidth: {
-        width: '48%',
+        width: '49%',
         marginLeft: '2%',
         marginTop: '16px'
     }
 });
 
-function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback, userEmail }) {
+function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback, userEmail, isChild }) {
 
     let [userEvent, setUserEvent] = React.useState({ ...userEventData });
-    let [reminderChecked, setReminderChecked] = React.useState(false);
-    let [reminderData, setReminderData] = React.useState({ phoneNumber: "", email: "", eventTitle: "", reminderDateOffset: "", eventDate: "" });
     let [privateChecked, setPrivateChecked] = React.useState(userEmail == userEventData.visibility);
     let [detailsMode, setDetailsMode] = React.useState(true);
     let [openSnackbar, setOpenSnackbar] = React.useState(false)
     let [buttonVisibility, setButtonVisibility] = React.useState(true);
     let [mapVisible, setMapVisible] = React.useState(false);
+    let [isUserChild, setIsUserChild] = React.useState(isChild);
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('xs'));
     const classes = useStyles();
@@ -137,7 +135,6 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
     function isValidDate(startDate, endDate) {
         let start = moment(startDate);
         let end = moment(endDate);
-        console.log(end.isBefore(start));
         if (end.isBefore(start) || start.isSame(end)) {
             return false;
         } else {
@@ -145,41 +142,36 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
         }
     }
 
+    function isValidZipcode(zipcode) {
+        if (zipcode.length === 0) {
+            return false;
+        }
+        if (/^\d{5}$/.test(zipcode)) {
+            return true;
+        }
+        return false;
+    }
+
     const editEvent = () => {
         let updatedEvent = { ...userEvent };
-
-        let reminderDataToSend = { ...reminderData };
-        let tempDate = updatedEvent.eventStart;
-        let finalDate = moment(tempDate).format('MM/DD/YYYY') + " At " + moment(tempDate).format('h:mm A');
-        reminderDataToSend.eventTitle = updatedEvent.eventTitle;
-        reminderDataToSend.eventDate = finalDate;
 
         if (!isValidDate(updatedEvent.eventStart, updatedEvent.eventEnd)) {
             setOpenSnackbar(true);
             return;
         }
 
+        if (!isValidZipcode(updatedEvent.startZip) || !isValidZipcode(updatedEvent.endZip)) {
+            updatedEvent.startZip = "";
+            updatedEvent.endZip = "";
+        }
+
+
         if (privateChecked) {
-            console.log('here')
             updatedEvent.visibility = userEmail;
         } else {
             updatedEvent.visibility = "public"
         }
 
-        // if (reminderChecked) {
-        //     if (reminderData.email.length > 0 && reminderData.phoneNumber.length > 0 && reminderData.reminderDateOffset) {
-        //         NotificationService.forwardNotificationSignup(reminderDataToSend);
-        //         console.log('got both');
-        //     } else if (reminderData.email.length > 0 && reminderData.reminderDateOffset) {
-        //         NotificationService.forwardNotificationSignup(reminderDataToSend);
-        //         console.log('got email');
-        //     } else if (reminderData.phoneNumber.length > 0 && reminderData.reminderDateOffset) {
-        //         NotificationService.forwardNotificationSignup(reminderDataToSend);
-        //         console.log('got phone');
-        //     } else {
-        //         console.log('got nothing');
-        //     }
-        // }
         editCallback(updatedEvent);
     }
 
@@ -210,11 +202,11 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
 
     const handleSnackbarClose = (event, reason) => {
         if (reason === 'clickaway') {
-          return;
+            return;
         }
-    
+
         setOpenSnackbar(false);
-      };
+    };
 
     return (
         <div>
@@ -224,14 +216,22 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                     <IconButton className={classes.closeButton} onClick={handleClose}>
                         <CloseIcon />
                     </IconButton>
-                    <IconButton className={classes.deleteButton} onClick={deleteEvent}>
-                        <DeleteIcon visibility={buttonVisibility === true ? 'visible' : 'hidden'} />
-                    </IconButton>
-                    <IconButton className={classes.editButton} onClick={toggleDetailsMode}>
-                        <EditIcon visibility={buttonVisibility === true ? 'visible' : 'hidden'} />
-                    </IconButton>
+                    {
+                        buttonVisibility === true && !isUserChild ?
+                            <div>
+                                <IconButton className={classes.deleteButton} onClick={deleteEvent}>
+                                    <DeleteIcon />
+                                </IconButton>
+                                <IconButton className={classes.editButton} onClick={toggleDetailsMode}>
+                                    <EditIcon />
+                                </IconButton>
+                            </div>
+                        :
+                            <div></div>
+                    }
+
                 </DialogTitle>
-                <DialogContent style={{justifyContent: 'center'}}>
+                <DialogContent style={{ justifyContent: 'center' }}>
                     <TextField
                         label="Event Title"
                         value={userEvent.eventTitle}
@@ -250,7 +250,7 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                                 onChange={date => handleStartDateChange(date)}
                                 className={classes.firstElementWidth}
                                 disabled={detailsMode}
-                   
+
                             />
                             <TimePicker
                                 autoOk
@@ -299,7 +299,7 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                             disabled={detailsMode}
                             style={{
                                 width: '49%',
-                                marginLeft: '2%' 
+                                marginLeft: '2%'
                             }}
                         />
                     </div>
@@ -338,9 +338,10 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                     } */}
                     <div>
                         {
-                            
+
                             detailsMode === true && mapVisible === true ?
                                 <div>
+                                    {/* <span style={{color:'green'}}>Test</span> */}
                                     <GMap startZip={userEvent.startZip} endZip={userEvent.endZip} />
                                 </div>
                                 :
@@ -349,19 +350,19 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                         }
                     </div>
                 </DialogContent>
-                <DialogActions style={{justifyContent: 'center'}}>
-                            <Button 
-                                style={{ visibility: detailsMode === true ? 'hidden' : 'visible' }} 
-                                variant="contained" 
-                                color="secondary" 
-                                onClick={editEvent}>Submit
+                <DialogActions style={{ justifyContent: 'center' }}>
+                    <Button
+                        style={{ visibility: detailsMode === true ? 'hidden' : 'visible' }}
+                        variant="contained"
+                        color="secondary"
+                        onClick={editEvent}>Submit
                             </Button>
                 </DialogActions>
                 <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleSnackbarClose}>
-        <Alert onClose={handleSnackbarClose} severity="error">
-          End Date cannot be before or equal to the Start Date!
+                    <Alert onClose={handleSnackbarClose} severity="error">
+                        End Date cannot be before or equal to the Start Date!
         </Alert>
-         </Snackbar>
+                </Snackbar>
             </Dialog>
         </div>
     )
