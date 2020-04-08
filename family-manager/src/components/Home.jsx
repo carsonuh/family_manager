@@ -46,7 +46,12 @@ import {createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
        return auth.signOut()
             .then(() => {
                setUser(null);
+               refresh();
             });
+    }
+
+    let refresh = () => {
+        window.location.reload(true);
     }
 
     const myTheme = createMuiTheme({
