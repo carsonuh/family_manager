@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { GoogleMap, LoadScript, DirectionsService } from '@react-google-maps/api'
+import { GoogleMap, LoadScript, DirectionsService, InfoBox } from '@react-google-maps/api'
 import { DirectionsRenderer } from '@react-google-maps/api';
 import { DistanceMatrixService } from '@react-google-maps/api';
 import { timePickerDefaultProps } from '@material-ui/pickers/constants/prop-types';
@@ -14,18 +14,31 @@ class GMap extends Component {
       travelMode: 'DRIVING',
       origin: [props.startZip],
       destination: [props.endZip],
-      submitted: false
+      submitted: false,
+      center: {
+        lat: 0,
+        lng: -180
+      },
+      commuteTime: "",
+      commuteFlag: 0,
+      map: null,
+      drawn: 0
     }
     this.directionsCallback = this.directionsCallback.bind(this)
     this.getOrigin = this.getOrigin.bind(this)
     this.getDestination = this.getDestination.bind(this)
     this.onClick = this.onClick.bind(this)
     this.onMapClick = this.onMapClick.bind(this)
+    this.matrix = this.matrix.bind(this)
+    this.centerChanged = this.centerChanged.bind(this);
+  }
+
+  componentDidMount() {
+    this.setState({response: null, travelMode: 'DRIVING', map: null, drawn: 0, commuteFlag: 0, submitted: false})
   }
 
   directionsCallback(response) {
     if (response !== null) {
-      console.log(response.code)
       if (response.status === 'OK') {
         this.setState(
           () => ({
@@ -39,7 +52,25 @@ class GMap extends Component {
   }
 
   matrix(callback) {
-    console.log(callback)
+    if(this.state.commuteFlag == 0) {
+      console.log(callback.rows[0].elements[0].duration.text)
+      this.setState({commuteTime: callback.rows[0].elements[0].duration.text});
+      this.setState({commuteFlag: 1});
+      this.setState({drawn: 0})
+    }
+  }
+
+  onTest = () => {
+    if (this.state.map && this.state.drawn == 0) {
+      const lat = this.state.map.getCenter().lat();
+      const lng = this.state.map.getCenter().lng();
+      this.setState({center: {lat: lat, lng: lng}})
+      this.setState({drawn: 1})
+    }
+  }
+
+  centerChanged(ref) {
+    this.setState({map: ref})
   }
 
   getOrigin(ref) {
@@ -54,18 +85,13 @@ class GMap extends Component {
 
   onClick() {
     if (this.state.origin !== '' && this.state.destination !== '') {
-      // this.setState(
-      //     () => ({
-      //         origin: this.origin.value,
-      //         destination: this.destination.value
-      //     })
-      // )
-      this.setState({ submitted: true });
+          this.setState({ submitted: true });
     }
   }
 
   onMapClick(...args) {
   }
+
 
   render() {
     return (
@@ -81,13 +107,12 @@ class GMap extends Component {
               width: '100%'
             }}
             zoom={2}
-            center={{
-              lat: 0,
-              lng: -180
-            }}
+            // center={this.state.center}
             options={{
               disableDefaultUI: true
             }}
+            onLoad={map=> this.centerChanged(map)}
+            onCenterChanged={this.onTest}
           >
 
             {
@@ -123,6 +148,26 @@ class GMap extends Component {
                   // required
                   callback={this.matrix}
                 />
+              )
+            }
+
+            {
+              (
+                this.state.commuteFlag !== 0 &&
+                this.state.commuteTime !== null
+              ) && (
+                <InfoBox
+                options={{closeBoxURL: '', enableEventPropagation: true}}
+                position={this.state.center}
+              >
+
+                <div style={{ backgroundColor: 'yellow', opacity: 0.75, padding: 12 }}>
+                  <div style={{ fontSize: 16, fontColor: `#08233B` }}>
+                    {this.state.commuteTime}
+                  </div>
+                </div>
+              </InfoBox>
+           
               )
             }
 
