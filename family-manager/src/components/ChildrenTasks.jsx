@@ -8,7 +8,7 @@ import MomentUtils from '@date-io/moment';
 
 import {
     MuiPickersUtilsProvider,
-    KeyboardDatePicker
+    KeyboardDatePicker, DatePicker
   } from '@material-ui/pickers';
 
 import {
@@ -16,7 +16,7 @@ import {
     InputLabel, Dialog, DialogActions,
     DialogContent, DialogTitle, Button,
     List, Box, Card, CardHeader, CardContent, IconButton,
-    Typography, FormControlLabel
+    Typography, FormControlLabel,FormGroup, 
   } from '@material-ui/core';
 
   import ChildTaskList from "./ChildTaskList"
@@ -28,8 +28,48 @@ import {
   import ExpansionPanel from '@material-ui/core/ExpansionPanel';
   import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
   import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
-  
+  import useMediaQuery from '@material-ui/core/useMediaQuery';
   import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+  import CloseIcon from '@material-ui/icons/Close';
+  import { makeStyles, useTheme} from '@material-ui/core/styles';
+
+
+  const useStyles = makeStyles((theme) => ({
+    root: {
+        margin: 0,
+        padding: theme.spacing(2),
+    },
+
+    closeButton: {
+        position: 'absolute',
+        right: theme.spacing(1),
+        top: theme.spacing(1),
+        color: '#FFFFFF',
+    },
+
+    submit: {
+        position: 'relative',
+        right: theme.spacing(1),
+        bottom: theme.spacing(1),
+    },
+
+    row: {
+        marginBottom: theme.spacing(2),
+    },
+
+    etitle: {
+        fontSize: "20px",
+    },
+
+    elements: {
+        width: '100%'
+    }
+
+}));
+
+
+
+
 
 function ChildrenTasks(props){
 
@@ -48,6 +88,10 @@ function ChildrenTasks(props){
 
     let verifyUser = new SharedCalendarService()
     let childService = new ChildrenTasksService();
+
+    const classes = useStyles();
+    const theme = useTheme();
+    const fullScreen = useMediaQuery(theme.breakpoints.down('xs'));
 
     // When page loads check if user exists, check if user is a child
     useEffect(() => {
@@ -178,23 +222,6 @@ function ChildrenTasks(props){
         <div>
             { isMasterUser ? 
            (   
-                // <Box className="box">
-                // <Card className="cardChore" variant="outlined">
-                //     <CardHeader
-                //         title="Chore List"
-
-                //         action={
-                //         <Tooltip title="New Chore" aria-label="add">
-                //             <IconButton aria-label="settings" onClick={handleClickOpen} style={{ color: green[500] }}>
-                //               <AddCircleIcon />
-                //             </IconButton>
-                //         </Tooltip>
-                //         }
-                //     />
-                // <CardContent><List>{childList}</List></CardContent>
-                //     </Card>
-                //  </Box>
-
             <Box className="box" >
 
                 <ExpansionPanel elevation={0} >
@@ -204,22 +231,6 @@ function ChildrenTasks(props){
                 id="panel1a-header"
                 >
 
-                {/* <FormControlLabel
-                aria-label="Acknowledge"
-                variant="outlined"
-                labelPlacement="start"
-                label="Chore List"
-                style={{height: "25px"}}
-
-
-                control={<IconButton onClick={handleClickOpen} aria-label="settings" 
-                style={{ color: green[500], display:"inline-block", postion: "absolute", left: "90px" }}>
-                <AddCircleIcon />
-                </IconButton>}
-                
-                /> */}
-
-              
                <Typography 
                 style={{flexBasis: '66.66%',
                 flexShrink: 0,}}
@@ -228,7 +239,7 @@ function ChildrenTasks(props){
                  <div style={{height:"25px"}}>
                  <Tooltip title="New Chore" aria-label="add">
                     <IconButton aria-label="settings"  onClick={handleClickOpen} 
-                    style={{ color: green[500], postion: "absolute", top: "-10px", left: "40px" }}>
+                    style={{postion: "absolute", top: "-10px", left: "40px" }}>
                         <AddCircleIcon />
                     </IconButton>
                     </Tooltip>
@@ -277,51 +288,78 @@ function ChildrenTasks(props){
             }
       
 
-            <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-                <DialogTitle id="form-dialog-title">Assign Chore</DialogTitle>
+            <Dialog 
+             open={open}
+             onClose={() => setOpen(false)}
+             fullScreen={fullScreen}
+             >
+                <DialogTitle id="form-dialog-title">
+                    
+                    Assign Chore
+                
+                <IconButton aria-label="close" className={classes.closeButton} onClick={() => setOpen(false)}>
+                        <CloseIcon />
+                    </IconButton>
+                
+                </DialogTitle>
                     <DialogContent>
-                        <TextField id="outlined-basic" label="Chore" variant="outlined" name="chore" value={formChore} onChange={(e) => setFormChore(e.target.value)} />
-                        <br />
-                        <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils}>
-                            <KeyboardDatePicker
-                                //disableToolbar
-                                disablePast
-                                variant="inline"
-                                margin="normal"
-                                name="date"
-                                label="Date"
-                                format="MM/DD/YYYY"
-                                value={formDate}
-                                onChange={(e) => setFormDate(moment(e._d).format('ll'))}
-                                KeyboardButtonProps={{
-                                    'aria-label': 'change date',
-                                }}
-                                />
-                        </MuiPickersUtilsProvider>
-                        <br /><br />
-                        <FormControl variant="outlined">
-                            <InputLabel htmlFor="outlined-age-native-simple">Child</InputLabel>
-                            <Select
-                                native
-                                value={formAssigned}
-                                onChange={(e) => setFormAssigned(e.target.value)}
-                                label="Child"
-                                inputProps={{
-                                    name: 'Child',
-                                    id: 'outlined-age-native-simple',
-                                }}
-                                >
-                                <option aria-label="None" value="" />
-                                {l}
-                            </Select>
-                        </FormControl>
+
+
+                        <FormGroup row={true} className={classes.row}>
+                            <TextField 
+                                id="outlined-basic" 
+                                className={classes.elements}
+                                label="Chore" 
+                                variant="outlined" 
+                                name="chore" 
+                                value={formChore} onChange={(e) => setFormChore(e.target.value)} 
+                            />
+                        </FormGroup>
+                       
+                        <FormGroup row={true} className={classes.row}>
+                            <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils}>
+                                <DatePicker
+                                    disableToolbar
+                                    disablePast
+                                    className={classes.elements}
+                                    variant="inline"
+                                    inputVariant="outlined"
+                                    margin="normal"
+                                    name="date"
+                                    label="Date"
+                                    format="MM/DD/YYYY"
+                                    value={formDate}
+                                    onChange={(e) => setFormDate(moment(e._d).format('ll'))}
+                                    KeyboardButtonProps={{
+                                        'aria-label': 'change date',
+                                    }}
+                                    />
+                            </MuiPickersUtilsProvider>
+                        </FormGroup>
+
+                        <FormGroup row={true} className={classes.row}>
+                            <FormControl  variant="outlined" className={classes.elements}>
+                                <InputLabel htmlFor="outlined-age-native-simple">Child</InputLabel>
+                                <Select
+                                    native
+                                    className={classes.elements}
+                                    value={formAssigned}
+                                    onChange={(e) => setFormAssigned(e.target.value)}
+                                    label="Child"
+                                    inputProps={{
+                                        name: 'Child',
+                                        id: 'outlined-age-native-simple',
+                                    }}
+                                    >
+                                    <option aria-label="None" value="" />
+                                    {l}
+                                </Select>
+                            </FormControl>
+                        </FormGroup>
                 </DialogContent>
 
                 <DialogActions>
-                    <Button onClick={handleClose} color="primary">
-                        Cancel
-                    </Button>
-                    <Button onClick={(e) => processForm(e)} color="primary">
+                    <Button onClick={(e) => processForm(e)} variant="outlined" color="secondary">
                         Submit
                     </Button>
                 </DialogActions>

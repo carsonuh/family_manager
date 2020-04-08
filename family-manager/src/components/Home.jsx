@@ -71,11 +71,11 @@ import {createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
         return (
            
             <div>
-                 <ThemeProvider theme={myTheme}>
+              
                 {user !== null ?
                     <div>
                         
-                        <Head loginAction={logout} login={true} userEmail={user.email} usersName={user.displayName} theme={myTheme}/>
+                        <Head loginAction={logout} login={true} userEmail={user.email} usersName={user.displayName} />
                         {/* <button onClick={this.logout}>Log Out</button> */}
                         {/* <SharedCalendar userEmail={user.email} usersName={user.displayName}/> */}
 
@@ -97,7 +97,7 @@ import {createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
                         {/*<EmptyCalendar />*/}
                     </div>
                 }   
-                </ThemeProvider>
+          
             </div>
         )
 }

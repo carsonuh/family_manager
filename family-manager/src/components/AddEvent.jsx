@@ -10,7 +10,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MomentUtils from '@date-io/moment';
 import moment from 'moment';
-import { makeStyles, useTheme, createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
+import { makeStyles, useTheme} from '@material-ui/core/styles';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
@@ -22,23 +22,14 @@ import { blue, orange } from '@material-ui/core/colors';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import MuiAlert from '@material-ui/lab/Alert';
 
-
 let tempStyles = {
     minWidth: 120
 }
-
-
-
 
 const useStyles = makeStyles((theme) => ({
     root: {
         margin: 0,
         padding: theme.spacing(2),
-    },
-    title: {
-        background: 'linear-gradient(45deg, #2196F3 10%, #21CBF3 90%)',
-        //background: theme.primary,
-        color: '#FFFFFF'
     },
 
     closeButton: {
@@ -69,11 +60,11 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-function AddEvent({ addEvent, toggleAddEventForm, userEmail }) {
+function AddEvent({ addEvent, toggleAddEvent, userEmail, openIt }) {
 
     let [newEvent, setNewEvent] = React.useState({ eventTitle: "", eventStartDate: moment().format("ll"), eventEndDate: moment().format("ll"), visibility: "", owner: "", eventStartZip: "", eventEndZip: "" });
     let [privateChecked, setPrivateChecked] = React.useState(false);
-    let [open, setOpen] = useState(true)
+    let [open, setOpen] = useState(openIt)
     let [openSnackbar, setOpenSnackbar] = useState(false)
     const classes = useStyles();
     const theme = useTheme();
@@ -157,6 +148,7 @@ function AddEvent({ addEvent, toggleAddEventForm, userEmail }) {
 
     return (
 
+   
         <div>
             <Dialog
                 open={open}
@@ -164,7 +156,11 @@ function AddEvent({ addEvent, toggleAddEventForm, userEmail }) {
                 fullScreen={fullScreen}
                 disableBackdropClick
             >
-                <DialogTitle className={classes.title}>
+
+
+
+
+                <DialogTitle>
                     {"Add Event"}
 
                     <IconButton aria-label="close" className={classes.closeButton} onClick={() => toggleClose()}>
@@ -251,7 +247,7 @@ function AddEvent({ addEvent, toggleAddEventForm, userEmail }) {
 
                     <FormGroup row={true} className={classes.row}>
                         <FormControlLabel
-                            control={<Switch name="check" color="primary" onChange={togglePrivateChecked} checked={privateChecked} />}
+                            control={<Switch name="check" color="secondary" onChange={togglePrivateChecked} checked={privateChecked} />}
                             label="Private event"
                             className={classes.elements}
                         />
@@ -262,7 +258,7 @@ function AddEvent({ addEvent, toggleAddEventForm, userEmail }) {
 
 
                 <DialogActions>
-                    <Button variant="contained" className={classes.submit} color="secondary" onClick={createAndSendEvent}>Submit</Button>
+                    <Button variant="outlined" className={classes.submit} color="secondary" onClick={createAndSendEvent}>Submit</Button>
                 </DialogActions>
 
                 <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleSnackbarClose}>

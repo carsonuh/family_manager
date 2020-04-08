@@ -1,0 +1,49 @@
+.rbc-toolbar .rbc-toolbar-label {
+    font-size: 1.8em;
+    text-align:left;
+    flex-grow:1
+}
+
+.rbc-btn-group:first-child {
+    margin-left: 20px;
+}
+
+.rbc-btn-group {
+    flex-grow: 3;
+}
+
+.rbc-month-header {
+    font-size: 1.2em;
+}
+
+.rbc-month-view {
+    border:0;
+}
+
+.rbc-header {
+    padding: 8px 3px;
+    text-transform: uppercase;
+    color: #333333;
+}
+
+
+.rbc-date-cell {
+    text-align:center;
+}
+
+
+
+.rbc-now a{
+    color: #363795;
+
+}
+
+.rbc-today {
+    background:  #f1f1ff;
+}
+
+.rbc-header + .rbc-header {
+    border-left: 0;
+    border-right: 0;
+}
+
