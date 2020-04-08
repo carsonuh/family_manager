@@ -13,13 +13,15 @@ import EditEvent from './EditEvent.jsx';
 import moment from 'moment';
 import Fab from '@material-ui/core/Fab';
 import AddIcon from '@material-ui/icons/Add';
-import { makeStyles, useTheme } from '@material-ui/core/styles';
+import { makeStyles, useTheme,  } from '@material-ui/core/styles';
 import { green } from '@material-ui/core/colors';
 import SpeedDial from '@material-ui/lab/SpeedDial';
 import SpeedDialIcon from '@material-ui/lab/SpeedDialIcon';
 import SpeedDialAction from '@material-ui/lab/SpeedDialAction';
 import NotificationsIcon from '@material-ui/icons/Notifications';
 import Reminders from './Reminders.jsx';
+import CalendarTodayIcon from '@material-ui/icons/CalendarToday';
+import "./Calendar.css";
 
 
 
@@ -31,8 +33,8 @@ const CalendarStyles = {
     calendarContainer: {
         margin: "auto",
         marginTop: "10px",
-        height: window.innerHeight-75,
-        //height: "calc(946px - 75px)",
+        height: window.innerHeight-(window.innerHeight*.08),
+        flexGrow:1,
         width: "99.5%",
     },
 }
@@ -59,10 +61,9 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 let actions = [
-    { icon: <AddIcon />, name: 'Add Event', operation: 'AddEvent' },
+    { icon: <CalendarTodayIcon />, name: 'Add Event', operation: 'AddEvent' },
     { icon: <NotificationsIcon />, name: 'Reminders', operation: 'AddRem' },
 ];
-
 
 
 
@@ -117,7 +118,11 @@ class SharedCalendar extends Component {
         //Return data into the callback and execute a data update
         this.sharedCalendarService.checkIfUserExists(this.userExists, this.state.userEmail);
         this.sharedCalendarService.checkIfUserIsChild(this.isChild, this.state.userEmail);
+
     }
+
+    
+
 
     userExists = (e, fireDocId) => {
         let userEmail = this.state.userEmail;
@@ -339,21 +344,28 @@ class SharedCalendar extends Component {
     }
 
     render() {
-
         return (
             <div style={{height: '100%', width: '100%'}}>
                 <div style={CalendarStyles.calendarContainer}>
-                    <Calendar
+
+           
+                <Calendar
                         // selectable
                         localizer={localizer}
                         events={this.state.events}
-                        startAccess="start"
+                        startAccessor="start"
                         endAccessor="end"
                         onSelectEvent={event => this.handleShow(event)}
+                        defaultView={['month']}
                         views={['month']}
                     />
 
-                    <div style={{position:'absolute', width: '50px', height: '50px', top: '75%', left: '80%'}}>
+                
+                    
+
+                
+
+                    <div style={{position:'absolute', width: '50px', height: '50px', bottom: '20vh', right: '5vw', zIndex:10}}>
                         <SpeedDial
                             ariaLabel="SpeedDial example"
                             icon={<SpeedDialIcon />}
@@ -381,6 +393,7 @@ class SharedCalendar extends Component {
                         addEvent={(newEvent) => this.addEvent(newEvent)}
                         toggleAddEventForm={this.toggleAddEventForm}
                         userEmail={this.state.userEmail}
+                        openIt = {true}
                     />
                     :
                     <div></div>

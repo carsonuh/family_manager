@@ -21,10 +21,6 @@ const useStyles = makeStyles({
         margin: 0,
         padding: 16
     },
-    title: {
-        background: 'linear-gradient(45deg, #2196F3 10%, #21CBF3 90%)',
-        color: '#FFFFFF'
-    },
     closeButton: {
         position: 'absolute',
         right: '8px',
@@ -224,9 +220,9 @@ function Reminders({toggleReminderForm, events}) {
                         </Select>
                     </FormControl>
                 </DialogContent>
-                <DialogActions style={{justifyContent:'center', marginTop:'20px'}}>
+                <DialogActions style={{marginTop:'20px'}}>
                 <Button 
-                                variant="contained" 
+                                variant="outlined" 
                                 color="secondary" 
                                 onClick={submitNotification}>
                                     Submit

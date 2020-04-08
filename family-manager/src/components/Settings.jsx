@@ -25,7 +25,6 @@ import SettingsIcon from '@material-ui/icons/Settings';
 
 const useStyles = makeStyles((theme) => ({
     appBar: {
-      background: 'linear-gradient(45deg, #2196F3 10%, #21CBF3 90%)',
       position: 'relative',
     },
 
@@ -190,7 +189,7 @@ function Settings(props) {
         Settings
       </Button>
       <Dialog fullScreen open={open} onClose={handleClose} >
-        <AppBar className={classes.appBar}>
+        <AppBar className={classes.appBar} elevation={0}>
           <Toolbar>
             <IconButton edge="start" color="inherit" onClick={handleClose} aria-label="close">
               <CloseIcon />
@@ -202,7 +201,6 @@ function Settings(props) {
           </Toolbar>
         </AppBar>
 
-        {/* <Typography variant="h4" className={classes.subTitle}>Users</Typography> */}
 
         <List>
           <ListSubheader className={classes.subTitle}>Users 

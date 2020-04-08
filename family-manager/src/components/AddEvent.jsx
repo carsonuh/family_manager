@@ -10,7 +10,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MomentUtils from '@date-io/moment';
 import moment from 'moment';
-import { makeStyles, useTheme, createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
+import { makeStyles, useTheme} from '@material-ui/core/styles';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
@@ -22,23 +22,14 @@ import { blue, orange } from '@material-ui/core/colors';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import MuiAlert from '@material-ui/lab/Alert';
 
-
 let tempStyles = {
     minWidth: 120
 }
-
-
-
 
 const useStyles = makeStyles((theme) => ({
     root: {
         margin: 0,
         padding: theme.spacing(2),
-    },
-    title: {
-        background: 'linear-gradient(45deg, #2196F3 10%, #21CBF3 90%)',
-        //background: theme.primary,
-        color: '#FFFFFF'
     },
 
     closeButton: {
@@ -69,13 +60,13 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
+function AddEvent({ addEvent, toggleAddEvent, userEmail, openIt }) {
 
     let [newEvent, setNewEvent] = React.useState({ eventTitle: "", eventStartDate: moment().format("ll"), eventEndDate: moment().format("ll"), visibility: "", owner: "", eventStartZip: "", eventEndZip: "" });
     let [reminderData, setReminderData] = React.useState({ phoneNumber: "", email: "", eventTitle: "", reminderDateOffset: "", eventDate: "" });
     let [reminderChecked, setReminderChecked] = React.useState(false);
     let [privateChecked, setPrivateChecked] = React.useState(false);
-    let [open, setOpen] = useState(true)
+    let [open, setOpen] = useState(openIt)
     let [openSnackbar, setOpenSnackbar] = useState(false)
     const classes = useStyles();
     const theme = useTheme();
@@ -179,6 +170,7 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
 
     return (
 
+   
         <div>
             <Dialog
                 open={open}
@@ -189,7 +181,7 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
 
 
 
-                <DialogTitle className={classes.title}>
+                <DialogTitle>
                     {"Add Event"}
 
                     <IconButton aria-label="close" className={classes.closeButton} onClick={() => setOpen(false)}>
@@ -276,7 +268,7 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
 
                     <FormGroup row="true" className={classes.row}>
                         <FormControlLabel
-                            control={<Switch name="check" color="primary" onChange={togglePrivateChecked} checked={privateChecked} />}
+                            control={<Switch name="check" color="secondary" onChange={togglePrivateChecked} checked={privateChecked} />}
                             label="Private event"
                             className={classes.elements}
                         />
@@ -287,10 +279,8 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
 
 
                 <DialogActions>
-                    <Button variant="contained" className={classes.submit} color="secondary" onClick={createAndSendEvent}>Submit</Button>
+                    <Button variant="outlined" className={classes.submit} color="secondary" onClick={createAndSendEvent}>Submit</Button>
                 </DialogActions>
-
-
 
                 <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleSnackbarClose}>
                     <Alert onClose={handleSnackbarClose} severity="error">
@@ -298,31 +288,6 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail }) {
                     </Alert>
                 </Snackbar>
             </Dialog>
-
-            {/* <div>
-                {
-                    reminderChecked === true ?
-                        <form>
-                            <TextField label="Email" value={reminderData.email} onChange={handleReminderEmail} />
-                            <TextField label="Phone Number" value={reminderData.phoneNumber} onChange={handleReminderPhone} />
-                            <FormControl style={tempStyles}>
-                                <InputLabel id="demo-simple-select-label">Remind Me In</InputLabel>
-                                <Select
-                                    labelId="demo-simple-select-label"
-                                    id="demo-simple-select"
-                                    value={reminderData.reminderDateOffset}
-                                    onChange={handleTimeOffset}
-                                >
-                                    <MenuItem value={1}>10 Minutes</MenuItem>
-                                    <MenuItem value={2}>1 Hour</MenuItem>
-                                    <MenuItem value={3}>1 Day</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </form>
-                        :
-                        <div></div>
-                }
-            </div> */}
         </div>
     )
 }

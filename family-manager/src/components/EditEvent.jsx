@@ -34,10 +34,6 @@ let useStyles = makeStyles({
         margin: 0,
         padding: 16
     },
-    title: {
-        background: 'linear-gradient(45deg, #2196F3 10%, #21CBF3 90%)',
-        color: '#FFFFFF'
-    },
     closeButton: {
         position: 'absolute',
         right: '8px',
@@ -219,7 +215,7 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
     return (
         <div>
             <Dialog onClose={handleClose} open={true} fullScreen={fullScreen}>
-                <DialogTitle className={classes.title}>
+                <DialogTitle>
                     Event Details
                     <IconButton className={classes.closeButton} onClick={handleClose}>
                         <CloseIcon />
@@ -349,10 +345,10 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                         }
                     </div>
                 </DialogContent>
-                <DialogActions style={{justifyContent: 'center'}}>
+                <DialogActions>
                             <Button 
                                 style={{ visibility: detailsMode === true ? 'hidden' : 'visible' }} 
-                                variant="contained" 
+                                variant="outlined" 
                                 color="secondary" 
                                 onClick={editEvent}>Submit
                             </Button>

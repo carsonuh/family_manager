@@ -49,16 +49,6 @@ import {createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
             });
     }
 
-    const myTheme = createMuiTheme({
-        palette: {
-          primary: {
-            main: teal[600],
-          },
-          secondary: {
-              main: "#f7b82f"
-          }
-        },
-      });
 
     /**
      * Renders a blank calendar when not logged in, renders calendar with user data when logged in
@@ -66,11 +56,11 @@ import {createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
         return (
            
             <div>
-                 <ThemeProvider theme={myTheme}>
+              
                 {user !== null ?
                     <div>
                         
-                        <Head loginAction={logout} login={true} userEmail={user.email} usersName={user.displayName} theme={myTheme}/>
+                        <Head loginAction={logout} login={true} userEmail={user.email} usersName={user.displayName} />
                         {/* <button onClick={this.logout}>Log Out</button> */}
                         {/* <SharedCalendar userEmail={user.email} usersName={user.displayName}/> */}
 
@@ -92,7 +82,7 @@ import {createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
                         {/*<EmptyCalendar />*/}
                     </div>
                 }   
-                </ThemeProvider>
+          
             </div>
         )
 }

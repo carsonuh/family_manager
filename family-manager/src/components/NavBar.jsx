@@ -1,5 +1,5 @@
 import React from 'react';
-import { makeStyles, useTheme } from '@material-ui/core/styles';
+import { makeStyles, useTheme} from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
@@ -18,28 +18,16 @@ import ChildrenTasks from "./ChildrenTasks"
 import Settings from "./Settings"
 
 
-
-
 const drawerWidth = 300;
 
 const useStyles = makeStyles((theme) => ({
-  //root: {
-  //  flexGrow: 1,
-  //  marginBottom: theme.spacing(2),
- // },
-
  root: {
   display: 'flex',
 },
-  //menuButton: {
-   // marginRight: theme.spacing(2),
-  //},
   menuButton: {
     marginRight: 36,
   },
   bar: {
-    //background: 'linear-gradient(45deg, #2196F3 10%, #21CBF3 90%)',
-    background: theme.primary,
     zIndex: theme.zIndex.drawer + 1,
   },
   title: {
@@ -48,32 +36,24 @@ const useStyles = makeStyles((theme) => ({
   hide: {
     display: 'none',
   },
- 
-  drawer: {
-    
-    flexGrow: 0,
-    //whiteSpace: 'nowrap',
-    [theme.breakpoints.up('sm')]: {
-      width: drawerWidth,
-    },
 
-    [theme.breakpoints.only('xs')]: {
-      width: "600px",
-    },
+  login: {
+    flexShrink: 1,
+  },
+
+  drawer: {
+    flexGrow: 0,
+    width: drawerWidth,
+    
+
+    // [theme.breakpoints.only('xs')]: {
+    //   width: "600px",
+    // },
   },
 
   innerDrawer: {
     marginTop: "75px",
   },
-
-  calShrink: {
-    width: "calc(100% - `$(drawerWidth)`px)",
-  },
-
-  calNorm: {
-    width: "100%"
-  },
-  
   toolbar: {
     // necessary for content to be below app bar
     ...theme.mixins.toolbar,
@@ -97,6 +77,8 @@ export default function NavBar(props) {
   };
 
   return (
+
+   
     <div>
     <div className={classes.root}>
 
@@ -104,7 +86,7 @@ export default function NavBar(props) {
             APP BAR 
         ***************************************************************/}
 
-      <AppBar position="sticky"  className={classes.bar}>
+      <AppBar position="sticky"  className={classes.bar} elevation={0}>
         <Toolbar>
               <IconButton 
               edge="start" 
@@ -117,7 +99,7 @@ export default function NavBar(props) {
           <Typography variant="h6" className={classes.title}>
             Family Manager
           </Typography>
-          <Button color="inherit" onClick={() => props.loginAction()}>{props.login ? "logout" : "login"}</Button>
+          <Button color="inherit" variant="outlined" className={classes.login} onClick={() => props.loginAction()}>{props.login ? "logout" : "login"}</Button>
         </Toolbar>
       </AppBar>
 
