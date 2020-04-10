@@ -83,15 +83,12 @@ class SharedCalendar extends Component {
             showEventForm: false,
             showReminderForm: false,
             open: false,
-<<<<<<< HEAD
             openSnackbar: false,
             alert: {
                 alertMessage: "",
                 severity: ""
             },
             loaded: props.loadedCallback
-=======
->>>>>>> 1a3ddd63eff7dadfc1880baef9c40b035a8f8dca
         };
 
         this.updateStorage = this.updateStorage.bind(this);
@@ -359,13 +356,6 @@ class SharedCalendar extends Component {
                         startAccessor="start"
                         endAccessor="end"
                         onSelectEvent={event => this.handleShow(event)}
-<<<<<<< HEAD
-                        // defaultView={['month']}
-                        views={['month']}
-                    />
-
-                
-=======
                         defaultView={["month"]}
                         views={["month"]}
                         messages = {{
@@ -378,7 +368,6 @@ class SharedCalendar extends Component {
                     />
                 
 
->>>>>>> 1a3ddd63eff7dadfc1880baef9c40b035a8f8dca
                     <div style={{position:'absolute', width: '50px', height: '50px', bottom: '20vh', right: '5vw', zIndex:10}}>
                         <SpeedDial
                             ariaLabel="SpeedDial example"
