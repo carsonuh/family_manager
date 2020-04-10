@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from 'react';
+import React, { useState } from 'react';
 import {
     MuiPickersUtilsProvider,
     DatePicker,
@@ -6,25 +6,14 @@ import {
 } from '@material-ui/pickers';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
-import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MomentUtils from '@date-io/moment';
 import moment from 'moment';
 import { makeStyles, useTheme} from '@material-ui/core/styles';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import FormControl from '@material-ui/core/FormControl';
-import Select from '@material-ui/core/Select';
-import NotificationService from '../Services/NotificationService';
 import { Dialog, DialogContent, DialogTitle, IconButton, Switch, FormGroup, DialogActions, Snackbar, } from '@material-ui/core';
 import CloseIcon from '@material-ui/icons/Close';
-import { blue, orange } from '@material-ui/core/colors';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import MuiAlert from '@material-ui/lab/Alert';
-
-let tempStyles = {
-    minWidth: 120
-}
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -60,7 +49,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-function AddEvent({ addEvent, toggleAddEvent, userEmail, openIt }) {
+function AddEvent({ addEvent, toggleAddEventForm, userEmail, openIt }) {
 
     let [newEvent, setNewEvent] = React.useState({ eventTitle: "", eventStartDate: moment().format("ll"), eventEndDate: moment().format("ll"), visibility: "", owner: "", eventStartZip: "", eventEndZip: "" });
     let [privateChecked, setPrivateChecked] = React.useState(false);
@@ -104,9 +93,10 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail, openIt }) {
     }
 
     function isValidDate(startDate, endDate) {
+        let dateNow = moment();
         let start = moment(startDate);
         let end = moment(endDate);
-        if (end.isBefore(start) || start.isSame(end)) {
+        if (end.isBefore(start) || start.isSame(end) || start.isBefore(dateNow)) {
             return false;
         } else {
             return true;
@@ -117,7 +107,7 @@ function AddEvent({ addEvent, toggleAddEvent, userEmail, openIt }) {
         let newEventData = { ...newEvent };
 
         if (!isValidDate(newEvent.eventStartDate, newEvent.eventEndDate)) {
-            setAlertMessage("End Date cannot before or equal to the Start Date!");
+            setAlertMessage("End Date cannot before or equal to the Start Date, Start Date cannot be before now!");
             return setOpenSnackbar(true);
         }
 
