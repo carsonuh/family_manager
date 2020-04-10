@@ -12,6 +12,9 @@ import SpeedDialAction from '@material-ui/lab/SpeedDialAction';
 import NotificationsIcon from '@material-ui/icons/Notifications';
 import Reminders from './Reminders.jsx';
 import CalendarTodayIcon from '@material-ui/icons/CalendarToday';
+import TodayIcon from '@material-ui/icons/TodayRounded';
+import BackIcon from '@material-ui/icons/ArrowBackIosRounded';
+import NextIcon from '@material-ui/icons/ArrowForwardIosRounded';
 import "./Calendar.css";
 import Alert from '@material-ui/lab/Alert';
 import Snackbar from '@material-ui/core/Snackbar';
@@ -22,6 +25,8 @@ const localizer = momentLocalizer(moment);
 
 
 const CalendarStyles = {
+
+    
     calendarContainer: {
         margin: "auto",
         marginTop: "10px",
@@ -29,6 +34,11 @@ const CalendarStyles = {
         flexGrow:1,
         width: "99.5%",
     },
+
+    buttonIcons: {
+        fontSize: "24px",
+        cursor: "pointer"
+    }
 }
 
 let actions = [
@@ -73,12 +83,15 @@ class SharedCalendar extends Component {
             showEventForm: false,
             showReminderForm: false,
             open: false,
+<<<<<<< HEAD
             openSnackbar: false,
             alert: {
                 alertMessage: "",
                 severity: ""
             },
             loaded: props.loadedCallback
+=======
+>>>>>>> 1a3ddd63eff7dadfc1880baef9c40b035a8f8dca
         };
 
         this.updateStorage = this.updateStorage.bind(this);
@@ -95,7 +108,7 @@ class SharedCalendar extends Component {
         //Return data into the callback and execute a data update
         this.sharedCalendarService.checkIfUserExists(this.userExists, this.state.userEmail);
         this.sharedCalendarService.checkIfUserIsChild(this.isChild, this.state.userEmail);
-
+        this.setState({view: this.props.view})
     }
 
     
@@ -346,11 +359,26 @@ class SharedCalendar extends Component {
                         startAccessor="start"
                         endAccessor="end"
                         onSelectEvent={event => this.handleShow(event)}
+<<<<<<< HEAD
                         // defaultView={['month']}
                         views={['month']}
                     />
 
                 
+=======
+                        defaultView={["month"]}
+                        views={["month"]}
+                        messages = {{
+                            previous : <BackIcon style={CalendarStyles.buttonIcons} />,
+                            next: <NextIcon style={CalendarStyles.buttonIcons} />,
+                            today: <TodayIcon style={CalendarStyles.buttonIcons} />
+                            
+                        }}
+                    
+                    />
+                
+
+>>>>>>> 1a3ddd63eff7dadfc1880baef9c40b035a8f8dca
                     <div style={{position:'absolute', width: '50px', height: '50px', bottom: '20vh', right: '5vw', zIndex:10}}>
                         <SpeedDial
                             ariaLabel="SpeedDial example"

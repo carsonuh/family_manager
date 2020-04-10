@@ -1,6 +1,12 @@
 import React from 'react';
+<<<<<<< HEAD
 import { NavLink, BrowserRouter, Route } from 'react-router-dom';
 import { makeStyles, useTheme} from '@material-ui/core/styles';
+=======
+
+// external imports
+import {makeStyles} from '@material-ui/core/styles';
+>>>>>>> 1a3ddd63eff7dadfc1880baef9c40b035a8f8dca
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
@@ -8,19 +14,19 @@ import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
 import Drawer from '@material-ui/core/Drawer';
-
 import List from '@material-ui/core/List';
-
 import Divider from '@material-ui/core/Divider';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ShoppingList from "./ShoppingList"
+import Skeleton from '@material-ui/lab/Skeleton';
+
+// local imports
 import SharedCalendar from "./SharedCalendar"
 import ChildrenTasks from "./ChildrenTasks"
 import Settings from "./Settings"
 import Guide from './Guide'
 
-
 const drawerWidth = 300;
+const mobileHeight = window.innerHeight*.9;
 
 const useStyles = makeStyles((theme) => ({
  root: {
@@ -44,13 +50,20 @@ const useStyles = makeStyles((theme) => ({
   },
 
   drawer: {
+<<<<<<< HEAD
     // flexGrow: 0,
     // width: drawerWidth,
     
+=======
+    flexGrow: 0,
+    width: drawerWidth,
+  },
+>>>>>>> 1a3ddd63eff7dadfc1880baef9c40b035a8f8dca
 
-    // [theme.breakpoints.only('xs')]: {
-    //   width: "600px",
-    // },
+  mobileCal: {
+    minHeight: mobileHeight,
+    height: mobileHeight,
+    maxHeight: mobileHeight
   },
 
   innerDrawer: {
@@ -63,12 +76,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function NavBar(props) {
-
-  const [email] = React.useState(props.userEmail)
   const classes = useStyles();
-  const theme = useTheme();
   const [open, setOpen] = React.useState(false);
-  const fullScreen = useMediaQuery(theme.breakpoints.down('xs'));
   let [toggleAbout, setToggleAbout] = React.useState(false)
   let [loaded, setLoaded] = React.useState(false);
 
@@ -80,13 +89,9 @@ export default function NavBar(props) {
     setOpen(false);
   };
 
-  const hasLoaded = () => {
-    setLoaded(true)
   }
 
   return (
-
-   
     <div>
     <div className={classes.root}>
 
@@ -155,7 +160,7 @@ export default function NavBar(props) {
         }
      
 
-
+    </div>
     {/*************************************************************  
         CALENDAR
       *************************************************************/}
@@ -170,5 +175,6 @@ export default function NavBar(props) {
     </div>
 
       </div>
+    </div>
   );
 }

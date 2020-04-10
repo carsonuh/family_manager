@@ -12,6 +12,15 @@
     flex-grow: 3;
 }
 
+.rbc-btn-group button{
+    border: none;
+    background-color:white;
+}
+
+.rbc-btn-group button:hover, .rbc-btn-group button:focus, .rbc-btn-group button:active{
+   background-color:white;
+}
+
 .rbc-month-header {
     font-size: 1.2em;
 }
