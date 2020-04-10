@@ -7,8 +7,7 @@ import moment from 'moment';
 import MomentUtils from '@date-io/moment';
 
 import {
-    MuiPickersUtilsProvider,
-    KeyboardDatePicker, DatePicker
+    MuiPickersUtilsProvider, DatePicker
   } from '@material-ui/pickers';
 
 import {
@@ -16,13 +15,12 @@ import {
     InputLabel, Dialog, DialogActions,
     DialogContent, DialogTitle, Button,
     List, Box, Card, CardHeader, CardContent, IconButton,
-    Typography, FormControlLabel,FormGroup, 
+    Typography, FormGroup, Badge 
   } from '@material-ui/core';
 
   import ChildTaskList from "./ChildTaskList"
   import ChildTaskListParentView from "./ChildTaskListParentView"
   import AddCircleIcon from '@material-ui/icons/AddCircle';
-  import { green } from '@material-ui/core/colors';
   import Tooltip from '@material-ui/core/Tooltip';
 
   import ExpansionPanel from '@material-ui/core/ExpansionPanel';
@@ -32,6 +30,7 @@ import {
   import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
   import CloseIcon from '@material-ui/icons/Close';
   import { makeStyles, useTheme} from '@material-ui/core/styles';
+  import ListIcon from '@material-ui/icons/List';
 
 
   const useStyles = makeStyles((theme) => ({
@@ -97,6 +96,7 @@ function ChildrenTasks(props){
     useEffect(() => {
         verifyUser.checkIfUserExists(userExists, email);
         verifyUser.checkIfUserIsChild(childStatus, email);
+        
       },[]);
 
     
@@ -106,6 +106,7 @@ function ChildrenTasks(props){
             setFireDocID(fireDocId );
             childService.fetchUserData(true, email, loadData,fireDocId);
             console.log("User exists");
+            childService.realTime(rtUpdate, fireDocId);
         } 
 
         // if user does not exists check if they are a shared user 
@@ -115,6 +116,10 @@ function ChildrenTasks(props){
         }
     } 
 
+    let rtUpdate = (update) => {
+        setChildTask(update.childrenTasks);
+        childSort(update.childrenTasks);
+    }
 
     // if user is a shared user update firedoc id
     let isSharedUser = (type, fireDocId) => {
@@ -128,6 +133,7 @@ function ChildrenTasks(props){
     // callback: load data from database
     let loadData = (info) => {
         setChildTask(info.childrenTasks);
+        childSort(info.childrenTasks);
         setChildren(info.myChildren);
         setMasterUser(info.isMasterUser);
     }
@@ -161,7 +167,7 @@ function ChildrenTasks(props){
 
             console.log("Adding chore to DB: ", [{email: formAssigned, chore: formChore, date: formDate}]);
             submitToDB(data)
-
+            childSort([...childrenTasks, data]);
         }
         else{
             console.log("Form has some missing data")
@@ -173,9 +179,13 @@ function ChildrenTasks(props){
    
     }
 
-    function submitToDB(data) {
+    let submitToDB = (data) =>{
             const db = firebase.firestore();
-            const itemList = db.collection("UserCalendarData").doc(fireDocId).update({
+            db.settings({
+                timestampsInSnapshots: true
+              });
+
+            db.collection("UserCalendarData").doc(fireDocId).update({
                 childrenTasks: firebase.firestore.FieldValue.arrayUnion(data)
             });
 
@@ -185,6 +195,9 @@ function ChildrenTasks(props){
 
     let deleteTask = (chore, child, date) => {
         const db = firebase.firestore();
+        db.settings({
+            timestampsInSnapshots: true
+          });
          db.collection("UserCalendarData").doc(fireDocId).update({
             childrenTasks: firebase.firestore.FieldValue.arrayRemove({chore: chore, email: child, date: date})
         });
@@ -200,6 +213,16 @@ function ChildrenTasks(props){
     const handleClose = () => {
         setOpen(false);
     };
+
+
+    let childSort = (tasks) => {
+        let mine = tasks.filter(chore => chore.email === email)
+        return setMyChores(mine);
+        // childList = mine.map( (i, index) => {
+        //     return <ChildTaskList key={index} chore={i.chore} child={i.email} date={i.date} onDeleteClick={deleteTask} />
+        // })
+    }
+
     
 
     let l = children.map((i, index) => listchild({name: i, key:index}));
@@ -209,12 +232,12 @@ function ChildrenTasks(props){
         return <ChildTaskListParentView key={index} chore={i.chore} child={i.email} date={i.date} onDeleteClick={deleteTask} />
     })
 
-    if (isChildUser){
-        let mine = childrenTasks.filter(chore => chore.email === email)
-        childList = mine.map( (i, index) => {
+    // let mine = childrenTasks.filter(chore => chore.email === email)
+    // setMyChores(mine);
+    let forchildList = myChores.map( (i, index) => {
             return <ChildTaskList key={index} chore={i.chore} child={i.email} date={i.date} onDeleteClick={deleteTask} />
         })
-    }
+
   
     
     return(
@@ -231,15 +254,19 @@ function ChildrenTasks(props){
                 id="panel1a-header"
                 >
 
+                <Badge badgeContent={childrenTasks.length} color="error" >   
+                    <ListIcon style={{color: "#b0aead"}}/>
+                </Badge>
                <Typography 
                 style={{flexBasis: '66.66%',
-                flexShrink: 0,}}
-    
-                >Chore List</Typography>
-                 <div style={{height:"25px"}}>
+                flexShrink: 0, marginLeft: "25px", marginTop: "-5px"}}
+                variant="h6"
+                >
+                    Chore List</Typography>
+                 <div style={{height:"25px", marginTop: "-3px"}}>
                  <Tooltip title="New Chore" aria-label="add">
                     <IconButton aria-label="settings"  onClick={handleClickOpen} 
-                    style={{postion: "absolute", top: "-10px", left: "40px" }}>
+                    style={{postion: "absolute", top: "-10px", left: "-15px" }}>
                         <AddCircleIcon />
                     </IconButton>
                     </Tooltip>
@@ -250,7 +277,7 @@ function ChildrenTasks(props){
                 </ExpansionPanelSummary>
                 <ExpansionPanelDetails>
             <Box className="inner-box">
-             
+                    
                     <List>{childList}</List>
              </Box>
             </ExpansionPanelDetails>
@@ -276,7 +303,7 @@ function ChildrenTasks(props){
                     <CardHeader
                         title="Your Chores"
                     />
-                    <CardContent><List>{childList}</List></CardContent>
+                    <CardContent><List>{forchildList}</List></CardContent>
                     </Card>
             </Box>
                

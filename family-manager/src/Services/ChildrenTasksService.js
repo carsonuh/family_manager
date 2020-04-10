@@ -36,4 +36,16 @@ export default class ChildrenTasksService {
                 })
         } 
     }
+
+    realTime(callback, fireDocId) {
+        const db = firebase.firestore();
+        db.collection("UserCalendarData").doc(fireDocId)
+                .onSnapshot((doc) => {
+
+                    let childrenTasks = doc.data().childrenTasks;
+
+                    console.log("Current data: ", childrenTasks);
+                    callback({childrenTasks});
+                });
+    }
 }

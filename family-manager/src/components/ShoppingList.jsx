@@ -2,11 +2,8 @@ import React, { Component } from "react"
 import firebase from '../firebase.js';
 import DisplayItem from "./DisplayItem"
 import "./shoppingList.css"
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
 import Box from '@material-ui/core/Box';
-import { CardHeader, IconButton, Tooltip, CardActions, Button, TextField, Typography, FormGroup, InputAdornment } from "@material-ui/core";
-import AddIcon from '@material-ui/icons/Add';
+import {IconButton,TextField, Typography, FormGroup, InputAdornment, Badge } from "@material-ui/core";
 
 
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
@@ -14,6 +11,7 @@ import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import ShoppingCartIcon from '@material-ui/icons/ShoppingCart';
 
 class ShoppingList extends Component {
 
@@ -28,8 +26,7 @@ class ShoppingList extends Component {
         this.fetchListData = this.fetchListData.bind(this);
         this.getFireDocId = this.getFireDocId.bind(this);
         this.handleChange = this.handleChange.bind(this)
-        this.handleClick = this.handleClick.bind(this)
-        this.handleCBChange = this.handleCBChange.bind(this);
+        this.handleClick = this.handleClick.bind(this);
     }
 
     componentDidMount() {
@@ -38,6 +35,7 @@ class ShoppingList extends Component {
         //this.checkIfUserExists(this.fetchListData)
         //this.fetchListData();
         this.getFireDocId(this.fetchListData);
+        
     }
 
     /**
@@ -62,8 +60,10 @@ class ShoppingList extends Component {
                     //If the email does exist, update the firestore document ID in state
                     this.setState({ fireDocId: querySnapshot.docs[0].id });
                     userExists = true;
+                    // this.realTime();
                 }
                 callback(userExists, this.fetchListData);
+                
             })
             .catch((error) => {
                 console.log("Error Getting Documents! " + error);
@@ -84,10 +84,6 @@ class ShoppingList extends Component {
                 .then((doc) => {
                     if (doc) {
                         let returnedData = doc.data().shoppingList;
-                        for (let i = 0; i < returnedData.length; i++) {
-                            returnedData[i].completed = returnedData[i].completed;
-                            returnedData[i].item = returnedData[i].item;
-                        }
                         this.setState({ items: returnedData });
                     } else {
                         console.log('Counldnt find user data');
@@ -113,20 +109,37 @@ class ShoppingList extends Component {
         }
     }
 
+
+    // realTime() {
+    //     const db = firebase.firestore();
+    //     db.collection("UserCalendarData").doc(this.state.fireDocId)
+    //             .onSnapshot((doc) => {
+
+    //                 let returnedData = doc.data().shoppingList;
+    //                 console.log("Current shoppinglist: ", returnedData);
+    //                 return this.setState({ items: returnedData });
+                    
+
+                
+                  
+    //             });
+
+                
+    // }
     /**
      * When a new event is added send it to the DB 
      * @param {new event data} itemData 
      */
     updateStorage(itemData) {
         const db = firebase.firestore();
-        const itemList = db.collection("UserCalendarData").doc(this.state.fireDocId).update({
+        db.collection("UserCalendarData").doc(this.state.fireDocId).update({
             shoppingList: firebase.firestore.FieldValue.arrayUnion(itemData)
         });
     }
 
     deleteStorage(itemData) {
         const db = firebase.firestore();
-        const itemList = db.collection("UserCalendarData").doc(this.state.fireDocId).update({
+        db.collection("UserCalendarData").doc(this.state.fireDocId).update({
             shoppingList: itemData
         });
     }
@@ -177,7 +190,7 @@ class ShoppingList extends Component {
         this.setState({ items: notCompleted });
         const db = firebase.firestore();
         db.collection("UserCalendarData").doc(this.state.fireDocId).update({
-            shoppingList: { ...notCompleted }
+            shoppingList: [...notCompleted]  
         });
     }
 
@@ -207,7 +220,11 @@ class ShoppingList extends Component {
               aria-controls="panel1a-content"
               id="panel1a-header"
             >
-              <Typography >Shopping List</Typography>
+            <Badge badgeContent={this.state.items.length} color="error" >
+            <ShoppingCartIcon style={{color: "#b0aead"}}/>
+            </Badge>
+              
+              <Typography style={{marginLeft:"25px", marginTop: "-4px"}} variant="h6">Shopping List</Typography>
             </ExpansionPanelSummary>
             <ExpansionPanelDetails>
             <Box className="inner-box">

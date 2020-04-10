@@ -21,6 +21,9 @@ import SpeedDialAction from '@material-ui/lab/SpeedDialAction';
 import NotificationsIcon from '@material-ui/icons/Notifications';
 import Reminders from './Reminders.jsx';
 import CalendarTodayIcon from '@material-ui/icons/CalendarToday';
+import TodayIcon from '@material-ui/icons/TodayRounded';
+import BackIcon from '@material-ui/icons/ArrowBackIosRounded';
+import NextIcon from '@material-ui/icons/ArrowForwardIosRounded';
 import "./Calendar.css";
 
 
@@ -30,6 +33,8 @@ const localizer = momentLocalizer(moment);
 
 
 const CalendarStyles = {
+
+    
     calendarContainer: {
         margin: "auto",
         marginTop: "10px",
@@ -37,6 +42,11 @@ const CalendarStyles = {
         flexGrow:1,
         width: "99.5%",
     },
+
+    buttonIcons: {
+        fontSize: "24px",
+        cursor: "pointer"
+    }
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -101,7 +111,7 @@ class SharedCalendar extends Component {
             isChild: false,
             showEventForm: false,
             showReminderForm: false,
-            open: false
+            open: false,
         };
 
         this.updateStorage = this.updateStorage.bind(this);
@@ -118,7 +128,7 @@ class SharedCalendar extends Component {
         //Return data into the callback and execute a data update
         this.sharedCalendarService.checkIfUserExists(this.userExists, this.state.userEmail);
         this.sharedCalendarService.checkIfUserIsChild(this.isChild, this.state.userEmail);
-
+        this.setState({view: this.props.view})
     }
 
     
@@ -356,13 +366,16 @@ class SharedCalendar extends Component {
                         startAccessor="start"
                         endAccessor="end"
                         onSelectEvent={event => this.handleShow(event)}
-                        defaultView={['month']}
-                        views={['month']}
-                    />
-
-                
+                        defaultView={["month"]}
+                        views={["month"]}
+                        messages = {{
+                            previous : <BackIcon style={CalendarStyles.buttonIcons} />,
+                            next: <NextIcon style={CalendarStyles.buttonIcons} />,
+                            today: <TodayIcon style={CalendarStyles.buttonIcons} />
+                            
+                        }}
                     
-
+                    />
                 
 
                     <div style={{position:'absolute', width: '50px', height: '50px', bottom: '20vh', right: '5vw', zIndex:10}}>

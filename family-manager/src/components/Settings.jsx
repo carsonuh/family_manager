@@ -3,7 +3,6 @@ import SettingService from "../Services/SettingService"
 import SettingsDialog from "./SettingsDialog"
 import firebase from "../firebase"
 
-
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -16,7 +15,6 @@ import CloseIcon from '@material-ui/icons/Close';
 import { 
   ListSubheader, DialogTitle, DialogContent, DialogActions,
   TextField, FormControlLabel, Switch
-
 } from "@material-ui/core"
 import AddIcon from '@material-ui/icons/Add';
 import { green } from '@material-ui/core/colors';
@@ -86,15 +84,6 @@ function Settings(props) {
       setOpen(false);
     };
 
-
-    const handleUserClickOpen = () => {
-      setNewUserOpen(true);
-  };
-
-  const handleUserClose = () => {
-    setNewUserOpen(false);
-  };
-
     // callback: load data from database
     let loadData = (info) => {
         setSharedUsers(info.sharedUsers);
@@ -103,40 +92,27 @@ function Settings(props) {
         setChildTasks(info.childTasks);
     }
 
-
-    
     let deleteTask = (email, type) => {
       const db = firebase.firestore();
-
-          db.collection("UserCalendarData").doc(fireDocId).update({
-            sharedUsers: firebase.firestore.FieldValue.arrayRemove(email) 
-        });
+      db.collection("UserCalendarData").doc(fireDocId).update({
+        sharedUsers: firebase.firestore.FieldValue.arrayRemove(email) 
+      });
         
-         setSharedUsers(sharedUsers.filter(u => u !== email));
-      
+      setSharedUsers(sharedUsers.filter(u => u !== email));
 
       if (type === "child") {
-
-        
-
         db.collection("UserCalendarData").doc(fireDocId).update({
           children: firebase.firestore.FieldValue.arrayRemove(email)
-      });
+        });
 
       let removeChild = childTasks.filter((t) => t.email === email)
 
-      removeChild.map(c => {
-        db.collection("UserCalendarData").doc(fireDocId).update({
-          childrenTasks: firebase.firestore.FieldValue.arrayRemove({chore: c.chore, date: c.date, email:c.email})
-    });
-      })
-     
-      
+      removeChild.map(c => db.collection("UserCalendarData")
+      .doc(fireDocId).update({
+        childrenTasks: firebase.firestore.FieldValue.arrayRemove({chore: c.chore, date: c.date, email:c.email})}))
+
        setChildTasks(childTasks.filter((t) => t.email !== email))
-       setChildUsers(childUsers.filter(u => u !== email));
-
-
-          
+       setChildUsers(childUsers.filter(u => u !== email));  
       }
   }
 
@@ -180,14 +156,21 @@ function Settings(props) {
     let child = childUsers.map( (u, index) => <SettingsDialog key={index} email={u} type="child" onDeleteClick={deleteTask} />)
     return(
         <div>
-      <Button variant="outlined" 
-      startIcon={<SettingsIcon />}
-      fullWidth
-      variant="text"
 
-      onClick={handleClickOpen}>
-        Settings
-      </Button>
+      {isMasterUser ? 
+        <Button 
+        startIcon={<SettingsIcon />}
+        fullWidth
+        variant="text"
+  
+        onClick={handleClickOpen}>
+          Settings
+        </Button>
+    
+        : null
+  
+      }
+
       <Dialog fullScreen open={open} onClose={handleClose} >
         <AppBar className={classes.appBar} elevation={0}>
           <Toolbar>
@@ -204,10 +187,10 @@ function Settings(props) {
 
         <List>
           <ListSubheader className={classes.subTitle}>Users 
-          <IconButton edge="end" aria-label="delete" onClick={() => setNewUserOpen(true)}  style={{ color: green[500] }} >
-                      <AddIcon />
-                  </IconButton>
-                </ListSubheader>
+            <IconButton edge="end" aria-label="delete" onClick={() => setNewUserOpen(true)}  style={{ color: green[500] }} >
+               <AddIcon />
+            </IconButton>
+          </ListSubheader>
 
         <SettingsDialog email={email} type="master user" />
         {shared}
@@ -235,10 +218,6 @@ function Settings(props) {
                 </Button>
             </DialogActions>
       </Dialog>
-
-
-        
-
       </Dialog>
     </div>
     )

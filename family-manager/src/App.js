@@ -1,6 +1,6 @@
 import React from 'react';
 import Home from './components/Home.jsx';
-import { makeStyles, useTheme, ThemeProvider } from '@material-ui/core/styles';
+import {ThemeProvider } from '@material-ui/core/styles';
 import myTheme from "./components/theme"
 
 function App() {
@@ -9,7 +9,6 @@ function App() {
     <div>
       <Home />
     </div>
-
     </ThemeProvider>
   )
 }
