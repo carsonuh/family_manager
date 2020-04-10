@@ -186,6 +186,7 @@ function ChildrenTasks(props){
             });
 
             console.log("All Chores: ", childrenTasks)
+            
     }
     
 
@@ -195,7 +196,9 @@ function ChildrenTasks(props){
             childrenTasks: firebase.firestore.FieldValue.arrayRemove({chore: chore, email: child, date: date})
         });
 
-        return setChildTask(childrenTasks.filter(task => task.chore !== chore))
+        let newArr = childrenTasks.filter(task => task.chore !== chore);
+        childSort(newArr);
+        return setChildTask(newArr);
     }
 
 
@@ -211,9 +214,6 @@ function ChildrenTasks(props){
     let childSort = (tasks) => {
         let mine = tasks.filter(chore => chore.email === email)
         return setMyChores(mine);
-        // childList = mine.map( (i, index) => {
-        //     return <ChildTaskList key={index} chore={i.chore} child={i.email} date={i.date} onDeleteClick={deleteTask} />
-        // })
     }
 
     
@@ -225,8 +225,6 @@ function ChildrenTasks(props){
         return <ChildTaskListParentView key={index} chore={i.chore} child={i.email} date={i.date} onDeleteClick={deleteTask} />
     })
 
-    // let mine = childrenTasks.filter(chore => chore.email === email)
-    // setMyChores(mine);
     let forchildList = myChores.map( (i, index) => {
             return <ChildTaskList key={index} chore={i.chore} child={i.email} date={i.date} onDeleteClick={deleteTask} />
         })

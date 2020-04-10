@@ -61,7 +61,7 @@ class ShoppingList extends Component {
                     //If the email does exist, update the firestore document ID in state
                     this.setState({ fireDocId: querySnapshot.docs[0].id });
                     userExists = true;
-                    // this.realTime();
+              
                 }
                 callback(userExists, this.fetchListData);
                 
@@ -110,23 +110,6 @@ class ShoppingList extends Component {
         }
     }
 
-
-    // realTime() {
-    //     const db = firebase.firestore();
-    //     db.collection("UserCalendarData").doc(this.state.fireDocId)
-    //             .onSnapshot((doc) => {
-
-    //                 let returnedData = doc.data().shoppingList;
-    //                 console.log("Current shoppinglist: ", returnedData);
-    //                 return this.setState({ items: returnedData });
-                    
-
-                
-                  
-    //             });
-
-                
-    // }
     /**
      * When a new event is added send it to the DB 
      * @param {new event data} itemData 
@@ -173,7 +156,6 @@ class ShoppingList extends Component {
                 if (item.item === itemName) {
                     item.completed = !item.completed
                     setTimeout(() => { this.deleteItems(item.index); }, 270);
-
                 }
                 return item
             })
