@@ -37,7 +37,7 @@ function Reminders({toggleReminderForm, events}) {
     let [reminderData, setReminderData] = React.useState({ phoneNumber: "", email: "", eventTitle: "", reminderDateOffset: "", eventDate: "" });
     let [userEvents, setUserEvents] = React.useState([...events]);
     let [openSnackbar, setOpenSnackbar] = React.useState(false)
-    let [alertMessage, setAlertMessage] = React.useState("");
+    let [alertMessage, setAlertMessage] = React.useState({message: "", severity: ""});
 
 
     useEffect(() => {
@@ -99,46 +99,54 @@ function Reminders({toggleReminderForm, events}) {
 
         if (reminderDataToSend.email.length > 0 && reminderDataToSend.phoneNumber.length > 0 && reminderDataToSend.reminderDateOffset) {
             if (!isValidPhone(reminderDataToSend.phoneNumber)) {
-                setAlertMessage("Invalid Phone Number");
+                setAlertMessage({message: "Invalid Phone Number", severity: "error"});
                 setOpenSnackbar(true);
                 return;
             }
 
             if (!isValidEmail(reminderDataToSend.email)) {
-                setAlertMessage("Invalid Email");
+                setAlertMessage({message: "Invalid Email", severity: "error"});
                 setOpenSnackbar(true);
                 return
             }
 
-            // NotificationService.forwardNotificationSignup(reminderDataToSend);
-            console.log('got both');
+            NotificationService.forwardNotificationSignup(reminderDataToSend);
         } else if (reminderDataToSend.email.length > 0 && reminderDataToSend.reminderDateOffset) {
             if (isValidEmail(reminderDataToSend.email)) {
-                console.log('valid email')
-                //NotificationService.forwardNotificationSignup(reminderDataToSend);
+                NotificationService.forwardNotificationSignup(reminderDataToSend, notificationResponse);
             } else {
-                setAlertMessage("Invalid Email");
+                setAlertMessage({message: "Invalid Email", severity: "error"});
                 setOpenSnackbar(true);
+                return;
             }
-            console.log('got email');
         } else if (reminderDataToSend.phoneNumber.length > 0 && reminderDataToSend.reminderDateOffset) {
             if (isValidPhone(reminderDataToSend.phoneNumber)) {
-                console.log('valid phoen');
-                // NotificationService.forwardNotificationSignup(reminderDataToSend);
+                NotificationService.forwardNotificationSignup(reminderDataToSend);
             } else {
-                setAlertMessage("Invalid Phone Number");
+                setAlertMessage({message: "Invalid Phone Number", severity: "error"});
                 setOpenSnackbar(true);
+                return;
             }
-            console.log('got phone');
         } else {
-            console.log('got nothing');
-            setAlertMessage("Select your event, when you want the reminder, email, phone number, or both!");
+            setAlertMessage({message: "Select your event, when you want the reminder, email, phone number, or both!", severity: "error"});
+            setOpenSnackbar(true);
+            return;
+        }
+    }
+
+    const notificationResponse = (response) => {
+        if (response.status === 200) {
+            setAlertMessage({message: "Reminder Submitted!", severity: "success"});
+            setOpenSnackbar(true);
+            clearForm();
+        } else {
+            setAlertMessage({message: "Reminder Signup Failure, Please Try Again!", severity: "error"});
             setOpenSnackbar(true);
         }
     }
 
     function isValidEmail(email) {
-
+        // eslint-disable-next-line
         if (/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email)) {
             return true;
         }
@@ -159,6 +167,10 @@ function Reminders({toggleReminderForm, events}) {
 
         setOpenSnackbar(false);
     };
+
+    const clearForm = () => {
+        setReminderData({phoneNumber: "", email: "", eventTitle: "", reminderDateOffset: "", eventDate: ""})
+    }
 
 
     function Alert(props) {
@@ -230,8 +242,8 @@ function Reminders({toggleReminderForm, events}) {
                 </DialogActions>
                 
                 <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleSnackbarClose}>
-                    <Alert onClose={handleSnackbarClose} severity="error">
-                        {alertMessage}
+                    <Alert onClose={handleSnackbarClose} severity={alertMessage.severity}>
+                        {alertMessage.message}
                     </Alert>
                 </Snackbar>
             </Dialog>        
