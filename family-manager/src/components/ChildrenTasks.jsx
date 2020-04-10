@@ -181,10 +181,6 @@ function ChildrenTasks(props){
 
     let submitToDB = (data) =>{
             const db = firebase.firestore();
-            db.settings({
-                timestampsInSnapshots: true
-              });
-
             db.collection("UserCalendarData").doc(fireDocId).update({
                 childrenTasks: firebase.firestore.FieldValue.arrayUnion(data)
             });
@@ -195,9 +191,6 @@ function ChildrenTasks(props){
 
     let deleteTask = (chore, child, date) => {
         const db = firebase.firestore();
-        db.settings({
-            timestampsInSnapshots: true
-          });
          db.collection("UserCalendarData").doc(fireDocId).update({
             childrenTasks: firebase.firestore.FieldValue.arrayRemove({chore: chore, email: child, date: date})
         });
@@ -357,9 +350,6 @@ function ChildrenTasks(props){
                                     format="MM/DD/YYYY"
                                     value={formDate}
                                     onChange={(e) => setFormDate(moment(e._d).format('ll'))}
-                                    KeyboardButtonProps={{
-                                        'aria-label': 'change date',
-                                    }}
                                     />
                             </MuiPickersUtilsProvider>
                         </FormGroup>

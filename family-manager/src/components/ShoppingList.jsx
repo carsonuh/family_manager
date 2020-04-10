@@ -27,6 +27,7 @@ class ShoppingList extends Component {
         this.getFireDocId = this.getFireDocId.bind(this);
         this.handleChange = this.handleChange.bind(this)
         this.handleClick = this.handleClick.bind(this);
+        this.handleCBChange = this.handleCBChange.bind(this);
     }
 
     componentDidMount() {
