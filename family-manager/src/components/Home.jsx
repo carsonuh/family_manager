@@ -74,7 +74,6 @@ import {createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
               
                 {user !== null ?
                     <div>
-                        
                         <Head loginAction={logout} login={true} userEmail={user.email} usersName={user.displayName} />
                         {/* <button onClick={this.logout}>Log Out</button> */}
                         {/* <SharedCalendar userEmail={user.email} usersName={user.displayName}/> */}

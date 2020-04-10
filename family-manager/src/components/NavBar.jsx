@@ -1,4 +1,5 @@
 import React from 'react';
+import { NavLink, BrowserRouter, Route } from 'react-router-dom';
 import { makeStyles, useTheme} from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -16,6 +17,7 @@ import ShoppingList from "./ShoppingList"
 import SharedCalendar from "./SharedCalendar"
 import ChildrenTasks from "./ChildrenTasks"
 import Settings from "./Settings"
+import Guide from './Guide'
 
 
 const drawerWidth = 300;
@@ -42,8 +44,8 @@ const useStyles = makeStyles((theme) => ({
   },
 
   drawer: {
-    flexGrow: 0,
-    width: drawerWidth,
+    // flexGrow: 0,
+    // width: drawerWidth,
     
 
     // [theme.breakpoints.only('xs')]: {
@@ -67,6 +69,8 @@ export default function NavBar(props) {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
   const fullScreen = useMediaQuery(theme.breakpoints.down('xs'));
+  let [toggleAbout, setToggleAbout] = React.useState(false)
+  let [loaded, setLoaded] = React.useState(false);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -75,6 +79,10 @@ export default function NavBar(props) {
   const handleDrawerClose = () => {
     setOpen(false);
   };
+
+  const hasLoaded = () => {
+    setLoaded(true)
+  }
 
   return (
 
@@ -99,6 +107,7 @@ export default function NavBar(props) {
           <Typography variant="h6" className={classes.title}>
             Family Manager
           </Typography>
+          {/* <Button color="inherit" variant="outlined" onClick={() => toggleAbout}>About</Button> */}
           <Button color="inherit" variant="outlined" className={classes.login} onClick={() => props.loginAction()}>{props.login ? "logout" : "login"}</Button>
         </Toolbar>
       </AppBar>
@@ -106,35 +115,45 @@ export default function NavBar(props) {
       {/*************************************************************  
           DRAWER
         *************************************************************/}
-      <Drawer
-        className={classes.drawer}
-        variant="persistent"
-        open={open}
-     
-      >
-
-        <div className={classes.innerDrawer}>
-        <List>
-
         {
-          props.userEmail !== undefined ?
-          
-          <div>
-             <ShoppingList userEmail={props.userEmail} /> 
-             <ChildrenTasks userEmail={props.userEmail} /> 
-             <div style={{height: "10px"}}></div>
-             <Divider />
-             <div style={{height: "10px"}}></div>
-             <Settings userEmail={props.userEmail} /> 
+          loaded === true ? 
+          <Drawer
+          className={classes.drawer}
+          variant="persistent"
+          open={open}
+       
+        >
+  
+          <div className={classes.innerDrawer}>
+          <List>
+  
+          {
+            props.userEmail !== undefined ?
+            
+            <div>
+               <ShoppingList userEmail={props.userEmail} /> 
+               <ChildrenTasks userEmail={props.userEmail} /> 
+               <div style={{height: "10px"}}></div>
+               <Divider />
+               <div style={{height: "10px"}}></div>
+               <Settings userEmail={props.userEmail} /> 
+               <Guide />
+            </div>
+           
+            :
+            <div>
+            <Guide />
+            </div>
+  
+          }
+          </List>
+        
           </div>
-         
-          :
-          null
+        </Drawer>
+        :
+        <div></div>
         }
-        </List>
-      
-        </div>
-      </Drawer>
+     
 
 
     {/*************************************************************  
@@ -145,7 +164,7 @@ export default function NavBar(props) {
     <div className={open ? classes.calShrink : classes.calNorm}>
       {
         props.userEmail !== undefined ?
-      <SharedCalendar userEmail={props.userEmail} userName={props.userName}/>
+      <SharedCalendar userEmail={props.userEmail} usersName={props.usersName} loadedCallback={hasLoaded}/>
       :
       null}
     </div>

@@ -1,20 +1,11 @@
 import React, { Component } from 'react';
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
-import Checkbox from '@material-ui/core/Checkbox';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import firebase from '../firebase.js';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import SharedCalendarService from '../Services/SharedCalendarService.js';
 import AddEvent from './AddEvent.jsx';
-import Settings from "./Settings"
 import EditEvent from './EditEvent.jsx';
 import moment from 'moment';
-import Fab from '@material-ui/core/Fab';
-import AddIcon from '@material-ui/icons/Add';
-import { makeStyles, useTheme,  } from '@material-ui/core/styles';
-import { green } from '@material-ui/core/colors';
 import SpeedDial from '@material-ui/lab/SpeedDial';
 import SpeedDialIcon from '@material-ui/lab/SpeedDialIcon';
 import SpeedDialAction from '@material-ui/lab/SpeedDialAction';
@@ -22,7 +13,8 @@ import NotificationsIcon from '@material-ui/icons/Notifications';
 import Reminders from './Reminders.jsx';
 import CalendarTodayIcon from '@material-ui/icons/CalendarToday';
 import "./Calendar.css";
-
+import Alert from '@material-ui/lab/Alert';
+import Snackbar from '@material-ui/core/Snackbar';
 
 
 //setup time localizer
@@ -38,27 +30,6 @@ const CalendarStyles = {
         width: "99.5%",
     },
 }
-
-const useStyles = makeStyles((theme) => ({
-    root: {
-        backgroundColor: theme.palette.background.paper,
-        width: 500,
-        position: 'relative',
-        minHeight: 200,
-    },
-    fab: {
-        position: 'absolute',
-        bottom: theme.spacing(2),
-        right: theme.spacing(2),
-    },
-    speedDial: {
-        position: 'absolute',
-        '&.MuiSpeedDial-directionUp': {
-            bottom: theme.spacing(2),
-            right: theme.spacing(2),
-        },
-    }
-}));
 
 let actions = [
     { icon: <CalendarTodayIcon />, name: 'Add Event', operation: 'AddEvent' },
@@ -101,7 +72,13 @@ class SharedCalendar extends Component {
             isChild: false,
             showEventForm: false,
             showReminderForm: false,
-            open: false
+            open: false,
+            openSnackbar: false,
+            alert: {
+                alertMessage: "",
+                severity: ""
+            },
+            loaded: props.loadedCallback
         };
 
         this.updateStorage = this.updateStorage.bind(this);
@@ -127,6 +104,7 @@ class SharedCalendar extends Component {
     userExists = (e, fireDocId) => {
         let userEmail = this.state.userEmail;
         if (e) {
+            this.state.loaded()
             this.setState({ fireDocId: fireDocId });
             this.sharedCalendarService.fetchUserData(true, this.loadData, userEmail, this.state.fireDocId);
         } else {
@@ -135,26 +113,27 @@ class SharedCalendar extends Component {
     }
 
     loadData = (returnedUserData) => {
-        let eventData = returnedUserData.returnedData.filter(event => event.visibility == "public" || event.visibility == this.state.userEmail);
+        let eventData = returnedUserData.returnedData.filter(event => event.visibility === "public" || event.visibility === this.state.userEmail);
         this.setState({ events: eventData, masterUser: returnedUserData.isMasterUser });
     }
 
     newUser = (userType, fireDocId) => {
-        if (userType == 1) {
+        if (userType === 1) {
             alert("Welcome, Start by adding some data to the calendar");
             this.sharedCalendarService.loadNewOrSharedUser(userType, this.loadData2, { userEmail: this.state.userEmail, userName: this.state.usersName });
         }
-        else if (userType == 2) {
+        else if (userType === 2) {
             this.setState({ fireDocId: fireDocId });
             this.sharedCalendarService.loadNewOrSharedUser(userType, this.loadData2, null, this.state.fireDocId)
         }
     }
 
     loadData2 = (returnedUserData) => {
-        if (returnedUserData.type == 1) {
+        this.state.loaded()
+        if (returnedUserData.type === 1) {
             this.setState({ fireDocId: returnedUserData.fireDocId, masterUser: true });
         } else {
-            let eventData = returnedUserData.filter(event => event.visibility == "public" || event.visibility == this.state.userEmail);
+            let eventData = returnedUserData.filter(event => event.visibility === "public" || event.visibility === this.state.userEmail);
             this.setState({ events: eventData });
         }
     }
@@ -186,9 +165,10 @@ class SharedCalendar extends Component {
         }
 
         const db = firebase.firestore();
-        const userRef = db.collection("UserCalendarData").doc(this.state.fireDocId).update({
+        db.collection("UserCalendarData").doc(this.state.fireDocId).update({
             events: firebase.firestore.FieldValue.arrayUnion(newEvent)
         });
+        this.setState({alert: {message: `${newEvent.title} has been added`, severity: "success"}, openSnackbar:true});
     }
 
     /**
@@ -223,6 +203,7 @@ class SharedCalendar extends Component {
         });
 
         this.setState({ showEditForm: false });
+        this.setState({alert: {message: `${updatedEvent.title} has been updated!`, severity: "success"}, openSnackbar:true});
     }
 
     /**
@@ -241,7 +222,6 @@ class SharedCalendar extends Component {
         let eventArray = [...this.state.events];
         let eventToRemove = eventArray.find(event => event.id == updatedEvent.id);
         eventArray.splice(eventArray.indexOf(eventToRemove), 1);
-        console.log(eventToRemove)
         this.setState({ events: eventArray });
 
         const db = firebase.firestore();
@@ -250,6 +230,8 @@ class SharedCalendar extends Component {
         });
 
         this.setState({ showEditForm: false });
+        this.setState({alert: {message: `${updatedEvent.title} has been deleted!`, severity: "success"}, openSnackbar:true});
+
     }
 
     /**
@@ -328,6 +310,14 @@ class SharedCalendar extends Component {
     toggleSpeedClose = () => this.setState({ open: false });
     toggleSpeedOpen = () => this.setState({ open: true });
 
+    handleSnackbarClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        this.setState({openSnackbar: false});
+    };
+
+
     handleSpeed(e, operation) {
         if (operation === "AddEvent") {
             this.setState({showEventForm: true})
@@ -356,15 +346,11 @@ class SharedCalendar extends Component {
                         startAccessor="start"
                         endAccessor="end"
                         onSelectEvent={event => this.handleShow(event)}
-                        defaultView={['month']}
+                        // defaultView={['month']}
                         views={['month']}
                     />
 
                 
-                    
-
-                
-
                     <div style={{position:'absolute', width: '50px', height: '50px', bottom: '20vh', right: '5vw', zIndex:10}}>
                         <SpeedDial
                             ariaLabel="SpeedDial example"
@@ -434,6 +420,13 @@ class SharedCalendar extends Component {
                     :
                     <div></div>
                 }
+            </div>
+            <div>
+                <Snackbar open={this.state.openSnackbar} autoHideDuration={4000} onClose={this.handleSnackbarClose}>
+                    <Alert onClose={this.handleSnackbarClose} severity={this.state.alert.severity} variant="filled">
+                        {this.state.alert.message}
+                    </Alert>
+                </Snackbar>
             </div>
         </div >
         )
