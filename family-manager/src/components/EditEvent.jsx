@@ -60,7 +60,7 @@ let useStyles = makeStyles({
         marginTop: '10px'
     },
     weather: {
-        marginLeft: '45%'
+        marginLeft: '42%'
     },
     firstElementWidth: {
         width: '49%'
@@ -69,18 +69,31 @@ let useStyles = makeStyles({
         width: '49%',
         marginLeft: '2%',
         marginTop: '16px'
+    },
+    commuteTimeDiv: {
+        position: 'absolute',
+        zIndex: 1,
+        bottom: '30%',
+        right: '42%',
+        height: '25px',
+        width: '117px',
+        backgroundColor: 'white',
+        textAlign: 'center',
+        borderRadius: '3px'
     }
 });
 
 function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback, userEmail, isChild }) {
 
     let [userEvent, setUserEvent] = React.useState({ ...userEventData });
-    let [privateChecked, setPrivateChecked] = React.useState(userEmail == userEventData.visibility);
+    let [privateChecked, setPrivateChecked] = React.useState(userEmail === userEventData.visibility);
     let [detailsMode, setDetailsMode] = React.useState(true);
     let [openSnackbar, setOpenSnackbar] = React.useState(false)
     let [buttonVisibility, setButtonVisibility] = React.useState(true);
     let [mapVisible, setMapVisible] = React.useState(false);
-    let [isUserChild, setIsUserChild] = React.useState(isChild);
+    let [isUserChild] = React.useState(isChild);
+    let [commuteTime, setCommuteTime] = React.useState("");
+    let [alertMessage, setAlertMessage] = React.useState("");
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('xs'));
     const classes = useStyles();
@@ -88,7 +101,8 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
     useEffect(() => {
         editButtonValid();
         shouldMapDisplay();
-    }, []);
+        console.log('here')
+    });
 
     const shouldMapDisplay = () => {
         let dateNow = moment();
@@ -151,7 +165,14 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
     const editEvent = () => {
         let updatedEvent = { ...userEvent };
 
+        if (updatedEvent.eventTitle.length === 0) {
+            setAlertMessage("Missing Title!")
+            setOpenSnackbar(true);
+            return
+        }
+
         if (!isValidDate(updatedEvent.eventStart, updatedEvent.eventEnd)) {
+            setAlertMessage("End Date cannot be before or equal to the Start Date!")
             setOpenSnackbar(true);
             return;
         }
@@ -203,6 +224,10 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
 
         setOpenSnackbar(false);
     };
+
+    const setCTime = (data) => {
+        setCommuteTime(data);
+    }
 
     return (
         <div>
@@ -300,7 +325,7 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                         />
                     </div>
                     {
-                        userEmail == userEvent.owner ?
+                        userEmail === userEvent.owner ?
                             <div className={classes.checkBoxes}>
                                 <FormControlLabel
                                     control={
@@ -315,7 +340,7 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                             :
                             <div></div>
                     }
-                    {/* {
+                    {
                         detailsMode === true ?
                             <div>{
                                 userEvent.endZip.length >= 5 ?
@@ -331,20 +356,36 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                             :
                             <div>
                             </div>
-                    } */}
+                    }
                     <div>
                         {
 
                             detailsMode === true && mapVisible === true ?
                                 <div>
-                                    {/* <span style={{color:'green'}}>Test</span> */}
-                                    <GMap startZip={userEvent.startZip} endZip={userEvent.endZip} />
+                                    <GMap startZip={userEvent.startZip} endZip={userEvent.endZip} setTime={setCTime}/>
                                 </div>
                                 :
                                 <div>
                                 </div>
                         }
                     </div>
+                    <div>
+                        {
+                            detailsMode === true && mapVisible === true?
+                            <div> <div>
+                            {
+                                commuteTime.length > 0 ?
+                            <div className={classes.commuteTimeDiv}>{commuteTime}</div>
+                                :
+                                <div></div>
+                            }
+                        </div></div>
+                            :
+                            <div></div>
+                        }
+                    </div>
+                   
+
                 </DialogContent>
                 <DialogActions>
                             <Button 
@@ -356,7 +397,7 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                 </DialogActions>
                 <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleSnackbarClose}>
                     <Alert onClose={handleSnackbarClose} severity="error">
-                        End Date cannot be before or equal to the Start Date!
+                        {alertMessage}
         </Alert>
                 </Snackbar>
             </Dialog>
