@@ -11,20 +11,20 @@ const defaults = {
 
 function Weather({ zipcode }) {
 
-    let [weatherData, setWeatherData] = React.useState({ temp: '', icon: '' });
-    let [zipCode, setZipCode] = React.useState(zipcode);
+    let [weatherData, setWeatherData] = React.useState({ temp: '', icon: ''});
+    let [error, setError] = React.useState(false);
+    let [zipCode] = React.useState(zipcode);
     let [weatherFetched, setWeatherFetched] = React.useState(false);
 
     function fetchWeather() {
         if (!weatherFetched) {
             let zip = parseInt(zipCode);
-            let tempy = `http://api.openweathermap.org/data/2.5/weather?zip=${zip},us&units=imperial&APPID=`;
-            fetch(tempy)
+            let url = `http://api.openweathermap.org/data/2.5/weather?zip=${zip},us&units=imperial&APPID=b1630a5c4e2d490b0aaacab53d1be8f3`;
+            fetch(url)
                 .then((response) => {
                     return response.json()
                 })
                 .then((responsejson) => {
-                    console.log(responsejson)
                     let liveWeatherData = {
                         temp: Math.ceil(responsejson.main.temp),
                         conditions: responsejson.weather[0].icon
@@ -32,13 +32,14 @@ function Weather({ zipcode }) {
     
                     setWeatherData(liveWeatherData)
                     setWeatherFetched(true);
+                })
+                .catch((error) => {
+                    setError(true);
                 });
         } 
-     
     }
 
     function getWeatherIcon() {
-        console.log(weatherData)
         switch (weatherData.conditions) {
             case '01d':
             case '01n':
@@ -85,7 +86,7 @@ function Weather({ zipcode }) {
                     <div>
                         {fetchWeather()}
                         {
-                            weatherData.temp ? 
+                            weatherData.temp && !error ? 
                             <div> 
                               <ReactAnimatedWeather
                                     icon={getWeatherIcon()}
