@@ -190,9 +190,6 @@ function AddEvent({ addEvent, toggleAddEventForm, userEmail, openIt }) {
                                 value={newEvent.eventStartDate}
                                 onChange={date => handleNewEventStart(date)}
                                 className={classes.elements}
-                                // KeyboardButtonProps={{
-                                //     'aria-label': 'change date',
-                                // }}
                                 required
 
                             />
@@ -215,7 +212,6 @@ function AddEvent({ addEvent, toggleAddEventForm, userEmail, openIt }) {
                             <TimePicker
                                 autoOk
                                 variant="inline"
-                                disableToolbar
                                 label="Start Time"
                                 value={newEvent.eventStartDate}
                                 onChange={time => handleNewEventStart(time)}
@@ -225,7 +221,6 @@ function AddEvent({ addEvent, toggleAddEventForm, userEmail, openIt }) {
                             <TimePicker
                                 autoOk
                                 variant="inline"
-                                disableToolbar
                                 label="End Time"
                                 value={newEvent.eventEndDate}
                                 onChange={time => handleNewEventEnd(time)}
