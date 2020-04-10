@@ -356,7 +356,7 @@ class SharedCalendar extends Component {
                         startAccessor="start"
                         endAccessor="end"
                         onSelectEvent={event => this.handleShow(event)}
-                        defaultView={["month"]}
+                        defaultView={"month"}
                         views={["month"]}
                         messages = {{
                             previous : <BackIcon style={CalendarStyles.buttonIcons} />,

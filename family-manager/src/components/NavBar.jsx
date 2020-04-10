@@ -1,12 +1,7 @@
 import React from 'react';
-<<<<<<< HEAD
-import { NavLink, BrowserRouter, Route } from 'react-router-dom';
-import { makeStyles, useTheme} from '@material-ui/core/styles';
-=======
 
 // external imports
 import {makeStyles} from '@material-ui/core/styles';
->>>>>>> 1a3ddd63eff7dadfc1880baef9c40b035a8f8dca
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
@@ -18,6 +13,7 @@ import List from '@material-ui/core/List';
 import Divider from '@material-ui/core/Divider';
 import ShoppingList from "./ShoppingList"
 import Skeleton from '@material-ui/lab/Skeleton';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 
 // local imports
 import SharedCalendar from "./SharedCalendar"
@@ -49,17 +45,6 @@ const useStyles = makeStyles((theme) => ({
     flexShrink: 1,
   },
 
-  drawer: {
-<<<<<<< HEAD
-    // flexGrow: 0,
-    // width: drawerWidth,
-    
-=======
-    flexGrow: 0,
-    width: drawerWidth,
-  },
->>>>>>> 1a3ddd63eff7dadfc1880baef9c40b035a8f8dca
-
   mobileCal: {
     minHeight: mobileHeight,
     height: mobileHeight,
@@ -89,6 +74,8 @@ export default function NavBar(props) {
     setOpen(false);
   };
 
+  const hasLoaded = () => {
+    setLoaded(true)
   }
 
   return (
@@ -158,9 +145,6 @@ export default function NavBar(props) {
         :
         <div></div>
         }
-     
-
-    </div>
     {/*************************************************************  
         CALENDAR
       *************************************************************/}
@@ -175,6 +159,5 @@ export default function NavBar(props) {
     </div>
 
       </div>
-    </div>
   );
 }
