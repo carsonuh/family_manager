@@ -15,6 +15,8 @@ import CloseIcon from '@material-ui/icons/Close';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import MuiAlert from '@material-ui/lab/Alert';
 
+
+//Create local class styles using our set theme
 const useStyles = makeStyles((theme) => ({
     root: {
         margin: 0,
@@ -48,9 +50,16 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-
+/**
+ * Renders the add event dialog form
+ * @param {callback to be called with event data} addEvent
+ * @param {callback to be called to close dialog} toggleAddEventForm
+ * @param {the users email} userEmail
+ * @param {whether to open the dialog} openIt
+ */
 function AddEvent({ addEvent, toggleAddEventForm, userEmail, openIt }) {
 
+    //Establish all the state variables required for this form
     let [newEvent, setNewEvent] = React.useState({ eventTitle: "", eventStartDate: moment().format("ll"), eventEndDate: moment().format("ll"), visibility: "", owner: "", eventStartZip: "", eventEndZip: "" });
     let [privateChecked, setPrivateChecked] = React.useState(false);
     let [open, setOpen] = useState(openIt)
@@ -61,6 +70,7 @@ function AddEvent({ addEvent, toggleAddEventForm, userEmail, openIt }) {
     let [alertMessage, setAlertMessage] = React.useState("");
 
 
+    //Event handler methods when the various form inputs are updated
     let handleNewEventTitle = (e) => {
         let newEventDetails = { ...newEvent };
         newEventDetails.eventTitle = e.target.value;
@@ -79,6 +89,7 @@ function AddEvent({ addEvent, toggleAddEventForm, userEmail, openIt }) {
         setNewEvent(newEventDetails);
     }
 
+    //Closes the alert message popup
     const handleSnackbarClose = (event, reason) => {
         if (reason === 'clickaway') {
             return;
@@ -87,11 +98,12 @@ function AddEvent({ addEvent, toggleAddEventForm, userEmail, openIt }) {
         setOpenSnackbar(false);
     };
 
-
+    //Renders the alert message popup
     function Alert(props) {
         return <MuiAlert elevation={6} variant="filled" {...props} />;
     }
 
+    //Validates the start and end date of the users event
     function isValidDate(startDate, endDate) {
         let dateNow = moment();
         let start = moment(startDate);
@@ -103,14 +115,15 @@ function AddEvent({ addEvent, toggleAddEventForm, userEmail, openIt }) {
         }
     }
 
+    //First validates the start and end date of the users event, then submits the event to the parent component
     let createAndSendEvent = () => {
         let newEventData = { ...newEvent };
-
         if (!isValidDate(newEvent.eventStartDate, newEvent.eventEndDate)) {
-            setAlertMessage("End Date cannot before or equal to the Start Date, Start Date cannot be before now!");
+            setAlertMessage("End Date cannot be before or equal to the Start Date, Start Date cannot be before now!");
             return setOpenSnackbar(true);
         }
 
+        //Update the visibility of the event, "who can see it"
         if (newEventData.eventTitle !== "" && newEventData.eventStartDate !== null && newEventData.eventEndDate !== null) {
             if (privateChecked) {
                 newEventData.visibility = userEmail;
@@ -120,13 +133,16 @@ function AddEvent({ addEvent, toggleAddEventForm, userEmail, openIt }) {
             newEventData.owner = userEmail;
             addEvent(newEventData);
         } else {
+            //If the user didn't complete the form, throw an alert
             setAlertMessage("Form is missing information");
             return setOpenSnackbar(true)
         }
 
+        //Close the form
         setOpen(false)
     }
 
+    //Handles the checking of the private event checkbox
     let togglePrivateChecked = () => {
         setPrivateChecked(!privateChecked);
     }
@@ -137,8 +153,6 @@ function AddEvent({ addEvent, toggleAddEventForm, userEmail, openIt }) {
     }
 
     return (
-
-   
         <div>
             <Dialog
                 open={open}
@@ -146,10 +160,6 @@ function AddEvent({ addEvent, toggleAddEventForm, userEmail, openIt }) {
                 fullScreen={fullScreen}
                 disableBackdropClick
             >
-
-
-
-
                 <DialogTitle>
                     {"Add Event"}
 
@@ -157,11 +167,8 @@ function AddEvent({ addEvent, toggleAddEventForm, userEmail, openIt }) {
                         <CloseIcon />
                     </IconButton>
                 </DialogTitle>
-
                 <DialogContent >
-
                     <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils}>
-
                         <FormGroup row={true} className={classes.row}>
                             <TextField
                                 className={classes.etitle}
@@ -174,11 +181,10 @@ function AddEvent({ addEvent, toggleAddEventForm, userEmail, openIt }) {
 
                                 style={{ marginTop: "10px", textSize: "18px" }}
                                 inputProps={{
-                                    style: { fontSize: 20 }
+                                    style: { fontSize: 20 },
                                 }}
                             />
                         </FormGroup>
-
                         <FormGroup row={true} className={classes.row}>
                             <DatePicker
                                 disablePast
@@ -191,7 +197,7 @@ function AddEvent({ addEvent, toggleAddEventForm, userEmail, openIt }) {
                                 onChange={date => handleNewEventStart(date)}
                                 className={classes.elements}
                                 required
-
+                                inputProps={{"data-testid": "startDateInput"}}
                             />
                             <DatePicker
                                 disablePast
@@ -204,10 +210,9 @@ function AddEvent({ addEvent, toggleAddEventForm, userEmail, openIt }) {
                                 onChange={date => handleNewEventEnd(date)}
                                 className={classes.elements}
                                 required
+                                inputProps={{"data-testid": "endDateInput"}}
                             />
                         </FormGroup>
-
-
                         <FormGroup row={true} className={classes.row}>
                             <TimePicker
                                 autoOk
@@ -229,23 +234,17 @@ function AddEvent({ addEvent, toggleAddEventForm, userEmail, openIt }) {
                             />
                         </FormGroup>
                     </MuiPickersUtilsProvider>
-
                     <FormGroup row={true} className={classes.row}>
                         <FormControlLabel
-                            control={<Switch name="check" color="secondary" onChange={togglePrivateChecked} checked={privateChecked} />}
+                            control={<Switch inputProps={{"data-testid": "privateCheck"}} name="check" color="secondary" onChange={togglePrivateChecked} checked={privateChecked} />}
                             label="Private event"
                             className={classes.elements}
                         />
                     </FormGroup>
-
-
                 </DialogContent>
-
-
                 <DialogActions>
                     <Button variant="outlined" className={classes.submit} color="secondary" onClick={createAndSendEvent}>Submit</Button>
                 </DialogActions>
-
                 <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleSnackbarClose}>
                     <Alert onClose={handleSnackbarClose} severity="error">
                         {alertMessage}
