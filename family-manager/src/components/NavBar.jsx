@@ -131,7 +131,6 @@ export default function NavBar(props) {
                <Settings userEmail={props.userEmail} /> 
                <Guide />
             </div>
-           
             :
             <div>
             <Guide />
@@ -143,7 +142,19 @@ export default function NavBar(props) {
           </div>
         </Drawer>
         :
-        <div></div>
+        <div>
+          <Drawer
+            className={classes.drawer}
+            variant="persistent"
+            open={open}
+          >          
+            <div className={classes.innerDrawer} style={{width: '180px'}}>
+              <List>
+                <Guide />
+              </List>
+            </div>
+          </Drawer>
+      </div>
         }
     {/*************************************************************  
         CALENDAR

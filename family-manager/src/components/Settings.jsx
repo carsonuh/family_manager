@@ -20,6 +20,8 @@ import AddIcon from '@material-ui/icons/Add';
 import { green } from '@material-ui/core/colors';
 import SharedCalendarService from "../Services/SharedCalendarService"
 import SettingsIcon from '@material-ui/icons/Settings';
+import MuiAlert from '@material-ui/lab/Alert';
+import Snackbar from '@material-ui/core/Snackbar';
 
 const useStyles = makeStyles((theme) => ({
     appBar: {
@@ -54,6 +56,8 @@ function Settings(props) {
     const [open, setOpen] = useState(false);
     const [newUserEmail, setUserEmail] = useState("");
     const [newUserIsChild, setNewUserIsChild] = useState(false)
+    let [openSnackbar, setOpenSnackbar] = React.useState(false)
+    let [alertMessage, setAlertMessage] = React.useState({message: "", severity: ""});
     
  
 
@@ -119,7 +123,12 @@ function Settings(props) {
 
   function processNewUser(e) {
 
-    if(newUserEmail !== ""){
+      if (!isValidEmail(newUserEmail)) {
+        setAlertMessage({message: "Invalid Email!", severity: "error"});
+        setOpenSnackbar(true);
+        return;
+      }
+
       const db = firebase.firestore();
 
       db.collection("UserCalendarData").doc(fireDocId).update({
@@ -135,13 +144,39 @@ function Settings(props) {
   
         setChildUsers([...childUsers, newUserEmail]);
       }
-    }
-
+      
+    setAlertMessage({message: `Calendar successfully shared with ${newUserEmail}`, severity: "success"});
+    setOpenSnackbar(true);
     setNewUserIsChild(false)
     setUserEmail("")
     setNewUserOpen(false)
     return
   }
+
+  function isValidEmail(email) {
+
+    if(email.length === 0) {
+      return false;
+    }
+
+    // eslint-disable-next-line
+    if (/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email)) {
+        return true;
+    }
+    return false;
+}
+
+const handleSnackbarClose = (event, reason) => {
+  if (reason === 'clickaway') {
+      return;
+  }
+
+  setOpenSnackbar(false);
+};
+
+function Alert(props) {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 
     // gets the difference between sharedUsers[] and childUsers[]
   
@@ -217,8 +252,27 @@ function Settings(props) {
                     Submit
                 </Button>
             </DialogActions>
+            <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={handleSnackbarClose}>
+                    <Alert onClose={handleSnackbarClose} severity={alertMessage.severity}>
+                        {alertMessage.message}
+                    </Alert>
+                </Snackbar>
       </Dialog>
+      {
+        alertMessage.severity === 'success' ?
+        <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={handleSnackbarClose}>
+                    <Alert onClose={handleSnackbarClose} severity={alertMessage.severity}>
+                        {alertMessage.message}
+                    </Alert>
+                </Snackbar>
+        :
+        null
+
+      }
+      
       </Dialog>
+
+
     </div>
     )
 }
