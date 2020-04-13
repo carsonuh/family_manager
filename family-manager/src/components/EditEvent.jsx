@@ -18,6 +18,7 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import GMap from './GoogleMap.jsx';
 import MuiAlert from '@material-ui/lab/Alert';
 import Snackbar from '@material-ui/core/Snackbar';
+import usZips from 'us-zips/map';
 
 import {
     MuiPickersUtilsProvider,
@@ -27,7 +28,7 @@ import {
 import { makeStyles, useTheme } from '@material-ui/core';
 import { useEffect } from 'react';
 
-
+//Use material ui to create a style object for this component
 let useStyles = makeStyles({
     root: {
         margin: 0,
@@ -83,8 +84,18 @@ let useStyles = makeStyles({
     }
 });
 
+/**
+ * This component is the edit/event details dialog that apperas when a user clicks on an event
+ * @param {User Event data object} userEventData
+ * @param {Callback triggered with updated event data} editCallback
+ * @param {callback triggerd when the delete button is clicked} deleteCallback
+ * @param {callback triggered when the close button is clicked} closeCallback
+ * @param {the users email} userEmail
+ * @param {whether or not the user is a child} isChild
+ */
 function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback, userEmail, isChild }) {
 
+    //Setup all the required state variables based on data passed in and known local settings
     let [userEvent, setUserEvent] = React.useState({ ...userEventData });
     let [privateChecked, setPrivateChecked] = React.useState(userEmail === userEventData.visibility);
     let [detailsMode, setDetailsMode] = React.useState(true);
@@ -94,22 +105,34 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
     let [isUserChild] = React.useState(isChild);
     let [commuteTime, setCommuteTime] = React.useState("");
     let [alertMessage, setAlertMessage] = React.useState("");
+
+    //Establish the styling state for the component
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('xs'));
     const classes = useStyles();
 
+    //When the component runs call a functions to determine whether or not to render
+    //The edit and delete buttons and the google map
     useEffect(() => {
         editButtonValid();
         shouldMapDisplay();
-        console.log('here')
     });
 
+    /**
+     * Determines whether or not the map should display based on the zip codes provided.
+     * If there are no zip codes provided or the event is over, don't display the map
+     */
     const shouldMapDisplay = () => {
         let dateNow = moment();
         if (userEventData.startZip !== userEventData.endZip && dateNow.isBefore(userEvent.eventEnd)) {
             setMapVisible(true);
         }
     }
+
+    /**
+     * The next five methods handle changes for all the input fields
+     * The parameters are the changes made to the input
+     */
 
     const handleStartDateChange = (e) => {
         let start = new Date(e);
@@ -142,9 +165,18 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
         setUserEvent(userEventData);
     }
 
+    /**
+     * Returns true or false depending on whether the date is valid
+     * Valid conditions: End date cannot be before the start date and the 
+     * events end date and start date cannot be exactly the same
+     * @param {event's start date} startDate 
+     * @param {event's end date} endDate 
+     */
     function isValidDate(startDate, endDate) {
+        //Convert the dates from strings to moment objects, so we can perform comparisons
         let start = moment(startDate);
         let end = moment(endDate);
+
         if (end.isBefore(start) || start.isSame(end)) {
             return false;
         } else {
@@ -152,37 +184,60 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
         }
     }
 
+    /**
+     * Determines whether a entered zipcode is valid
+     * Valid conditions: Zip code must exist and the string must not be empty
+     * @param {the zipcode entered} zipcode 
+     */
     function isValidZipcode(zipcode) {
         if (zipcode.length === 0) {
             return false;
         }
+
+        //Make sure the zipcode is a five digit number
         if (/^\d{5}$/.test(zipcode)) {
-            return true;
+
+            //Us the usZips library to check to see that the zipcode exists
+            if (usZips.get(zipcode)) {
+                return true;
+            } else {
+                return false;
+            }
         }
         return false;
     }
 
+    /**
+     * This function is called when the user clicks submit,
+     * it validates the updated info, if any, then returns the info 
+     * to the parent component, the shared calendar.
+     */
     const editEvent = () => {
         let updatedEvent = { ...userEvent };
 
+        //If the event doesn't have a title, throw an alert
         if (updatedEvent.eventTitle.length === 0) {
             setAlertMessage("Missing Title!")
             setOpenSnackbar(true);
             return
         }
 
+        //If the event's dates are not valid throw an alert
         if (!isValidDate(updatedEvent.eventStart, updatedEvent.eventEnd)) {
             setAlertMessage("End Date cannot be before or equal to the Start Date!")
             setOpenSnackbar(true);
             return;
         }
 
+        //If the entered zipcodes are not valid, remove what the user entered.disabled
+        //We don't throw an alert, because these are optional fields
         if (!isValidZipcode(updatedEvent.startZip) || !isValidZipcode(updatedEvent.endZip)) {
             updatedEvent.startZip = "";
             updatedEvent.endZip = "";
         }
 
-
+        //If the user has made the event private, update the visibility to the users email
+        //If not private, make the visibility public
         if (privateChecked) {
             updatedEvent.visibility = userEmail;
         } else {
@@ -192,20 +247,28 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
         editCallback(updatedEvent);
     }
 
+    /**
+     * When the user clicks delete, call the delete callback with the event.
+     */
     const deleteEvent = () => {
         let updatedEvent = { ...userEvent };
         deleteCallback(updatedEvent);
     }
 
+    /**
+     * If the user clicks close, trigger the callback and the parent will close the dialog
+     */
     const handleClose = () => {
         closeCallback();
     }
 
     let togglePrivateChecked = () => setPrivateChecked(!privateChecked);
-
-
     const toggleDetailsMode = () => setDetailsMode(!detailsMode);
 
+    /**
+     * This function determines whether or not to show the edit button. 
+     * IF the event is in the past, do not show the edit button.
+     */
     function editButtonValid() {
         let dateNow = moment();
         if (!dateNow.isBefore(userEvent.eventEnd)) {
@@ -213,6 +276,10 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
         }
     }
 
+    /**
+     * Renders the alert box that appears on validation errors
+     * @param {message to render alert with} props 
+     */
     function Alert(props) {
         return <MuiAlert elevation={6} variant="filled" {...props} />;
     }
@@ -225,6 +292,10 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
         setOpenSnackbar(false);
     };
 
+    /**
+     * Called by the google maps component with the commute time.
+     * @param {commute time to event location} data 
+     */
     const setCTime = (data) => {
         setCommuteTime(data);
     }
@@ -234,16 +305,16 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
             <Dialog onClose={handleClose} open={true} fullScreen={fullScreen}>
                 <DialogTitle>
                     Event Details
-                    <IconButton className={classes.closeButton} onClick={handleClose}>
+                    <IconButton aria-label="close" className={classes.closeButton} onClick={handleClose}>
                         <CloseIcon />
                     </IconButton>
                     {
                         buttonVisibility === true && !isUserChild ?
                             <div>
-                                <IconButton className={classes.deleteButton} onClick={deleteEvent}>
+                                <IconButton aria-label="delete" className={classes.deleteButton} onClick={deleteEvent}>
                                     <DeleteIcon />
                                 </IconButton>
-                                <IconButton className={classes.editButton} onClick={toggleDetailsMode}>
+                                <IconButton aria-label="edit" className={classes.editButton} onClick={toggleDetailsMode}>
                                     <EditIcon />
                                 </IconButton>
                             </div>
@@ -259,7 +330,8 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                         onChange={title => handleTitleChange(title)}
                         disabled={detailsMode}
                         fullWidth
-                    />
+                        inputProps={{"data-testid": "titleInput"}}
+                        />
                     <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils}>
                         <div>
                             <DatePicker
@@ -271,7 +343,7 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                                 onChange={date => handleStartDateChange(date)}
                                 className={classes.firstElementWidth}
                                 disabled={detailsMode}
-
+                                inputProps={{"data-testid": "startDateInput"}}
                             />
                             <TimePicker
                                 autoOk
@@ -281,6 +353,7 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                                 onChange={time => handleStartDateChange(time)}
                                 className={classes.secondElementWidth}
                                 disabled={detailsMode}
+                                inputProps={{"data-testid": "startTimeInput"}}
                             />
                         </div>
                         <div>
@@ -293,6 +366,7 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                                 onChange={date => handleEndDateChange(date)}
                                 className={classes.firstElementWidth}
                                 disabled={detailsMode}
+                                inputProps={{"data-testid": "endDateInput"}}
                             />
                             <TimePicker
                                 autoOk
@@ -301,6 +375,7 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                                 onChange={time => handleEndDateChange(time)}
                                 className={classes.secondElementWidth}
                                 disabled={detailsMode}
+                                inputProps={{"data-testid": "endTimeInput"}}
                             />
                         </div>
                     </MuiPickersUtilsProvider>
@@ -311,6 +386,7 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                             onChange={zip => handleStartZipChange(zip)}
                             disabled={detailsMode}
                             className={classes.firstElementWidth}
+                            inputProps={{"data-testid": "startZipInput"}}
                         />
                         <TextField
                             label="Event Zipcode"
@@ -322,6 +398,7 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                                 width: '49%',
                                 marginLeft: '2%'
                             }}
+                            inputProps={{"data-testid": "endZipInput"}}
                         />
                     </div>
                     {
@@ -330,6 +407,7 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                                 <FormControlLabel
                                     control={
                                         <Checkbox name="check"
+                                            inputProps={{"data-testid": "privateCheck"}}
                                             onClick={togglePrivateChecked}
                                             checked={privateChecked}
                                             disabled={detailsMode}
