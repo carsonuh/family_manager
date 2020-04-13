@@ -14,7 +14,7 @@ import {
     TextField, FormControl, Select,
     InputLabel, Dialog, DialogActions,
     DialogContent, DialogTitle, Button,
-    List, Box, Card, CardHeader, CardContent, IconButton,
+    List, Box, IconButton,
     Typography, FormGroup, Badge 
   } from '@material-ui/core';
 
@@ -66,10 +66,9 @@ import {
 
 }));
 
-
-
-
-
+/**
+ * @param {userEmail} props 
+ */
 function ChildrenTasks(props){
 
     const [email] = useState(props.userEmail);
@@ -105,17 +104,17 @@ function ChildrenTasks(props){
         if (e) {
             setFireDocID(fireDocId );
             childService.fetchUserData(true, email, loadData,fireDocId);
-            console.log("User exists");
             childService.realTime(rtUpdate, fireDocId);
         } 
 
         // if user does not exists check if they are a shared user 
         else{
             verifyUser.checkSharedUser(isSharedUser, email)
-            console.log("Checking if shared user.....")
         }
     } 
 
+    // realtime data checking. If a new change is pinged by
+    // firebase then a new update happens without page refresh
     let rtUpdate = (update) => {
         setChildTask(update.childrenTasks);
         childSort(update.childrenTasks);
@@ -143,53 +142,63 @@ function ChildrenTasks(props){
         setChildUser(status);
     }
 
-    // list all children for the dropdown
+    /**
+     * Populates dropdown list with children for the
+     * parent to pick
+     * @param {*} props 
+     * @returns <option>Child</option>
+     */
     function listchild(props) {
         return(
             <option key={props.key} value={props.name}>{props.name}</option>
         )
     }
 
-    // process form for adding a new chore 
+    /**
+     * Process form for adding a new chore. If the data passes validation
+     * then it gets sent to the db
+     * @param {FormData} e 
+     */
     function processForm(e) {
         e.preventDefault();
-        console.log("assigned:", formAssigned, " chore:",formChore, "date:", formDate );
 
         // check if values are not empty or equal to the default
         if(formAssigned !== "default" && formChore !== "" && formDate !== ""){
-
             let data = {email: formAssigned, chore: formChore, date: formDate};
 
-                childrenTasks.length > 0 ? 
-                setChildTask([...childrenTasks, data])
-                    :
-                setChildTask([data,]);
+            // children tasks is not empty
+            childrenTasks.length > 0 ? 
+            setChildTask([...childrenTasks, data])
+                :
+            // children task is empty
+            setChildTask([data,]);
 
-            console.log("Adding chore to DB: ", [{email: formAssigned, chore: formChore, date: formDate}]);
             submitToDB(data)
             childSort([...childrenTasks, data]);
         }
         else{
-            console.log("Form has some missing data")
         }
         setFormChore("");
         setFormAssigned("default")
         setFormDate(moment().format('ll'))
         handleClose()
-   
     }
 
+    // saves form data to firebase after it passes validation
     let submitToDB = (data) =>{
-            const db = firebase.firestore();
-            db.collection("UserCalendarData").doc(fireDocId).update({
-                childrenTasks: firebase.firestore.FieldValue.arrayUnion(data)
-            });
-
-            console.log("All Chores: ", childrenTasks)
-            
+        const db = firebase.firestore();
+        db.collection("UserCalendarData").doc(fireDocId).update({
+            childrenTasks: firebase.firestore.FieldValue.arrayUnion(data)
+        });
     }
     
 
+    /**
+     * Deletes chore from database 
+     * @param {*} chore 
+     * @param {*} child 
+     * @param {*} date 
+     */
     let deleteTask = (chore, child, date) => {
         const db = firebase.firestore();
          db.collection("UserCalendarData").doc(fireDocId).update({
@@ -290,12 +299,31 @@ function ChildrenTasks(props){
                
                
                <Box className="box">
-                <Card className="card" variant="outlined">
-                    <CardHeader
-                        title="Your Chores"
-                    />
-                    <CardContent><List>{forchildList}</List></CardContent>
-                    </Card>
+             
+                <ExpansionPanel elevation={0} >
+                <ExpansionPanelSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls="panel1a-content"
+                id="panel1a-header"
+                >
+
+                <Badge badgeContent={childrenTasks.length} color="error" >   
+                    <ListIcon style={{color: "#b0aead"}}/>
+                </Badge>
+               <Typography 
+                style={{flexBasis: '66.66%',
+                flexShrink: 0, marginLeft: "25px", marginTop: "-5px"}}
+                variant="h6"
+                >
+                    Your Chores</Typography>
+                </ExpansionPanelSummary>
+                <ExpansionPanelDetails>
+            <Box className="inner-box">
+                    
+                    <List>{forchildList}</List>
+             </Box>
+            </ExpansionPanelDetails>
+          </ExpansionPanel>
             </Box>
                
                
