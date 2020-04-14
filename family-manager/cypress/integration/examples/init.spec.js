@@ -30,5 +30,6 @@ describe('Cypress', () => {
         cy.contains('Shopping List').click();
         cy.get('[id="addItem"]').click().type('cookies');
         cy.get('[type="submit"]').click();
+        expect(cy.contains('cookies')).to.exist;
     });
 });
