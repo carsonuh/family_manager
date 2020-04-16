@@ -20,9 +20,11 @@ function DisplayItem(props) {
       <div style={props.completed ? completedStyle: inline}>
         <FormControlLabel
           value={props.item}
+          aria-label="shoppingListItem"
           control={
           <Checkbox 
             color="primary" 
+            aria-label="shoppingListItemCB"
             checked={props.completed}
             onChange={() => props.handleChange(props.item)}
           />}
