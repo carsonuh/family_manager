@@ -3,7 +3,7 @@ import firebase from '../firebase.js';
 import DisplayItem from "./DisplayItem"
 import "./shoppingList.css"
 import Box from '@material-ui/core/Box';
-import {IconButton,TextField, Typography, FormGroup, InputAdornment, Badge } from "@material-ui/core";
+import { IconButton, TextField, Typography, FormGroup, InputAdornment, Badge } from "@material-ui/core";
 
 
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
@@ -31,12 +31,7 @@ class ShoppingList extends Component {
     }
 
     componentDidMount() {
-        //Upon loading the component, check to see if a user exists
-        //Return data into the callback and execute a data update
-        //this.checkIfUserExists(this.fetchListData)
-        //this.fetchListData();
         this.getFireDocId(this.fetchListData);
-        
     }
 
     /**
@@ -61,10 +56,10 @@ class ShoppingList extends Component {
                     //If the email does exist, update the firestore document ID in state
                     this.setState({ fireDocId: querySnapshot.docs[0].id });
                     userExists = true;
-              
+
                 }
                 callback(userExists, this.fetchListData);
-                
+
             })
             .catch((error) => {
                 console.log("Error Getting Documents! " + error);
@@ -121,6 +116,10 @@ class ShoppingList extends Component {
         });
     }
 
+    /**
+     * When item is checked off list, then delete it from the database
+     * @param {item} itemData 
+     */
     deleteStorage(itemData) {
         const db = firebase.firestore();
         db.collection("UserCalendarData").doc(this.state.fireDocId).update({
@@ -128,28 +127,44 @@ class ShoppingList extends Component {
         });
     }
 
+    /**
+     * When item textfield is changed then set the state of newItem
+     * to the value of textfield
+     * @param {*} e 
+     */
     handleChange(e) {
         this.setState({ newItem: e.target.value })
     }
 
+    /**
+     * When add button is clicked check if item is not null and then add to
+     * the database
+     * @param {*} name 
+     */
     handleClick(name) {
         let i = { completed: false, item: name }
 
         this.setState({ newItem: "" })
 
-        if( name !== "") {
+        if (name !== "") {
             this.state.items.length > 0 ?
-            this.setState({ items: [...this.state.items, i,], })
-            :
-            this.setState({ items: [i] });
+                this.setState({ items: [...this.state.items, i,], })
+                :
+                this.setState({ items: [i] });
 
-        this.updateStorage(i);
+            this.updateStorage(i);
         }
-       
+
         return
     }
 
-
+    /**
+     * When item checkbox is selected then flip the completed state to true
+     * and delete the item that is now selected.
+     * 
+     * A timeout delay of 270 ms is added for an animation effect. 
+     * @param {*} itemName 
+     */
     handleCBChange(itemName) {
         this.setState(prevState => {
             const updatedList = prevState.items.map((item, index) => {
@@ -159,21 +174,28 @@ class ShoppingList extends Component {
                 }
                 return item
             })
-
             return {
                 items: updatedList
             }
         })
     }
 
-
+    /**
+     * Deletes item from state and makes those changes to the database. This method is 
+     * called from handleCBChange when item selected is true
+     * @param {*} id 
+     */
     deleteItems(id) {
         let allItems = this.state.items;
+
+        // only select items that have not been completed yet
         let notCompleted = allItems.filter((item) => item.completed === false);
+
+        // update state with items not completed
         this.setState({ items: notCompleted });
         const db = firebase.firestore();
         db.collection("UserCalendarData").doc(this.state.fireDocId).update({
-            shoppingList: [...notCompleted]  
+            shoppingList: [...notCompleted]
         });
     }
 
@@ -193,49 +215,48 @@ class ShoppingList extends Component {
         }
 
         return (
-
-
-
             <Box className="box">
                 <ExpansionPanel elevation={0}>
-            <ExpansionPanelSummary
-              expandIcon={<ExpandMoreIcon />}
-              aria-controls="panel1a-content"
-              id="panel1a-header"
-            >
-            <Badge badgeContent={this.state.items.length} color="error" >
-            <ShoppingCartIcon style={{color: "#b0aead"}}/>
-            </Badge>
-              
-              <Typography style={{marginLeft:"25px", marginTop: "-4px"}} variant="h6">Shopping List</Typography>
-            </ExpansionPanelSummary>
-            <ExpansionPanelDetails>
-            <Box className="inner-box">
-             
-           {itemCB}
-           <FormGroup row={true}>
+                    <ExpansionPanelSummary
+                        expandIcon={<ExpandMoreIcon />}
+                        aria-controls="panel1a-content"
+                        id="panel1a-header"
+                        aria-label="expand"
+                    >
+                        <Badge badgeContent={this.state.items.length} color="error" >
+                            <ShoppingCartIcon style={{ color: "#b0aead" }} />
+                        </Badge>
 
-           </FormGroup>
-              <TextField id="addItem" size="small" label="Add Item" variant="outlined" value={this.state.newItem} onChange={this.handleChange} 
-              
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position='end'>
-                    <IconButton type="submit" onClick={() => this.handleClick(this.state.newItem)} size="small">
-                <AddCircleIcon />
-                </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-           
-              />
-              
-             
-             </Box>
-            </ExpansionPanelDetails>
-          </ExpansionPanel>
+                        <Typography style={{ marginLeft: "25px", marginTop: "-4px" }} variant="h6">Shopping List</Typography>
+                    </ExpansionPanelSummary>
+                    <ExpansionPanelDetails>
+                        <Box className="inner-box" aria-label="list">
+
+                            {itemCB}
+                            <FormGroup row={true}>
+
+                            </FormGroup>
+                            <TextField id="addItem" size="small" label="Add Item" variant="outlined" value={this.state.newItem}
+                                onChange={this.handleChange}
+
+                                inputProps={{ "data-testid": "itemInput" }}
+                                InputProps={
+                                    {
+                                        endAdornment: (
+                                            <InputAdornment position='end'>
+                                                <IconButton aria-label="add" type="submit" onClick={() => this.handleClick(this.state.newItem)}
+                                                    size="small">
+                                                    <AddCircleIcon />
+                                                </IconButton>
+                                            </InputAdornment>
+                                        ),
+                                    }
+                                }
+                            />
+                        </Box>
+                    </ExpansionPanelDetails>
+                </ExpansionPanel>
             </Box>
-
         )
     }
 }
