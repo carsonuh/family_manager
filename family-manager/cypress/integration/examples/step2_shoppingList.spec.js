@@ -13,7 +13,6 @@ describe("Shopping list", () => {
         cy.get('[id="addItem"]').click().type('Cookies');
         cy.get('[type="submit"]').click();
         expect(cy.contains('Cookies')).to.exist;
-
     });
 
     // it('Add item - "Pretzels"', () => {
@@ -32,7 +31,7 @@ describe("Shopping list", () => {
 
     it('Remove item - "Cookies"', () => {
         cy.wait(2000)
-        cy.get('[aria-label="shoppingListItemCB"]').last().click();
+        cy.get('[aria-label="shoppingListItemCB"]').last().click()
         cy.contains('Cookies').should('not.exist')
     })
 
