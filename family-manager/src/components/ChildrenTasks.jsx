@@ -365,6 +365,7 @@ function ChildrenTasks(props){
                         <FormGroup row={true} className={classes.row}>
                             <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils}>
                                 <DatePicker
+                                    autoOk
                                     disableToolbar
                                     disablePast
                                     className={classes.elements}
@@ -382,7 +383,7 @@ function ChildrenTasks(props){
 
                         <FormGroup row={true} className={classes.row}>
                             <FormControl  variant="outlined" className={classes.elements}>
-                                <InputLabel htmlFor="outlined-age-native-simple">Child</InputLabel>
+                                <InputLabel htmlFor="child_list">Child</InputLabel>
                                 <Select
                                     native
                                     className={classes.elements}
@@ -391,7 +392,7 @@ function ChildrenTasks(props){
                                     label="Child"
                                     inputProps={{
                                         name: 'Child',
-                                        id: 'outlined-age-native-simple',
+                                        id: 'child_list',
                                     }}
                                     >
                                     <option aria-label="None" value="" />

@@ -1,7 +1,7 @@
 import React from 'react';
 
 // external imports
-import {makeStyles} from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
@@ -22,12 +22,12 @@ import Settings from "./Settings"
 import Guide from './Guide'
 
 const drawerWidth = 300;
-const mobileHeight = window.innerHeight*.9;
+const mobileHeight = window.innerHeight * .9;
 
 const useStyles = makeStyles((theme) => ({
- root: {
-  display: 'flex',
-},
+  root: {
+    display: 'flex',
+  },
   menuButton: {
     marginRight: 36,
   },
@@ -80,95 +80,95 @@ export default function NavBar(props) {
 
   return (
     <div>
-    <div className={classes.root}>
+      <div className={classes.root}>
 
-       {/*************************************************************  
+        {/*************************************************************  
             APP BAR 
         ***************************************************************/}
 
-      <AppBar position="sticky"  className={classes.bar} elevation={0}>
-        <Toolbar>
-              <IconButton 
-              edge="start" 
-              className={classes.menuButton} 
-              color="inherit" aria-label="menu" 
-              onClick={() => {setOpen(!open)}}
-              >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" className={classes.title}>
-            Family Manager
+        <AppBar position="sticky" className={classes.bar} elevation={0}>
+          <Toolbar>
+            <IconButton
+              edge="start"
+              className={classes.menuButton}
+              color="inherit" aria-label="menu"
+              onClick={() => { setOpen(!open) }}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="h6" className={classes.title}>
+              Family Manager
           </Typography>
-          {/* <Button color="inherit" variant="outlined" onClick={() => toggleAbout}>About</Button> */}
-          <Button color="inherit" variant="outlined" className={classes.login} onClick={() => props.loginAction()}>{props.login ? "logout" : "login"}</Button>
-        </Toolbar>
-      </AppBar>
+            {/* <Button color="inherit" variant="outlined" onClick={() => toggleAbout}>About</Button> */}
+            <Button id="loginButton" color="inherit" variant="outlined" className={classes.login} onClick={() => props.loginAction()}>{props.login ? "logout" : "login"}</Button>
+          </Toolbar>
+        </AppBar>
 
-      {/*************************************************************  
+        {/*************************************************************  
           DRAWER
         *************************************************************/}
         {
-          loaded === true ? 
-          <Drawer
-          className={classes.drawer}
-          variant="persistent"
-          open={open}
-       
-        >
-  
-          <div className={classes.innerDrawer}>
-          <List>
-  
-          {
-            props.userEmail !== undefined ?
-            
-            <div>
-               <ShoppingList userEmail={props.userEmail} /> 
-               <ChildrenTasks userEmail={props.userEmail} /> 
-               <div style={{height: "10px"}}></div>
-               <Divider />
-               <div style={{height: "10px"}}></div>
-               <Settings userEmail={props.userEmail} /> 
-               <Guide />
-            </div>
+          loaded === true ?
+            <Drawer
+              className={classes.drawer}
+              variant="persistent"
+              open={open}
+
+            >
+
+              <div className={classes.innerDrawer}>
+                <List>
+
+                  {
+                    props.userEmail !== undefined ?
+
+                      <div>
+                        <ShoppingList userEmail={props.userEmail} />
+                        <ChildrenTasks userEmail={props.userEmail} />
+                        <div style={{ height: "10px" }}></div>
+                        <Divider />
+                        <div style={{ height: "10px" }}></div>
+                        <Settings userEmail={props.userEmail} />
+                        <Guide />
+                      </div>
+                      :
+                      <div>
+                        <Guide />
+                      </div>
+
+                  }
+                </List>
+
+              </div>
+            </Drawer>
             :
             <div>
-            <Guide />
+              <Drawer
+                className={classes.drawer}
+                variant="persistent"
+                open={open}
+              >
+                <div className={classes.innerDrawer} style={{ width: '180px' }}>
+                  <List>
+                    <Guide />
+                  </List>
+                </div>
+              </Drawer>
             </div>
-  
-          }
-          </List>
-        
-          </div>
-        </Drawer>
-        :
-        <div>
-          <Drawer
-            className={classes.drawer}
-            variant="persistent"
-            open={open}
-          >          
-            <div className={classes.innerDrawer} style={{width: '180px'}}>
-              <List>
-                <Guide />
-              </List>
-            </div>
-          </Drawer>
-      </div>
         }
-    {/*************************************************************  
+        {/*************************************************************  
         CALENDAR
       *************************************************************/}
-    </div>
-
-    <div className={open ? classes.calShrink : classes.calNorm}>
-      {
-        props.userEmail !== undefined ?
-      <SharedCalendar userEmail={props.userEmail} usersName={props.usersName} loadedCallback={hasLoaded}/>
-      :
-      null}
-    </div>
-
       </div>
+
+      <div className={open ? classes.calShrink : classes.calNorm}>
+        {
+          props.userEmail !== undefined ?
+            <SharedCalendar userEmail={props.userEmail} usersName={props.usersName} loadedCallback={hasLoaded} />
+            :
+            null}
+      </div>
+
+    </div>
   );
 }
