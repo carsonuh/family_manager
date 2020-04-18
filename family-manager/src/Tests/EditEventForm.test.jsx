@@ -2,9 +2,12 @@ import React from 'react';
 import { render, fireEvent, screen } from '@testing-library/react';
 import EditForm from '../components/EditEvent.jsx';
 import '@testing-library/jest-dom';
-import moment from 'moment';
 
-describe('Add Event Form', () => {
+
+/**
+ * Tests validation and various characteristics of the edit event form
+ */
+describe('Edit Event Form', () => {
 
     let props;
 
@@ -37,7 +40,7 @@ describe('Add Event Form', () => {
 
         //Dialog Title Should Render Correctly
         expect(screen.getByText("Event Details")).toBeTruthy();
-    
+
         //Buttons should render correctly
         for (let button of buttons) {
             expect(screen.getByLabelText(button)).toBeTruthy();
