@@ -2,8 +2,11 @@ import React from 'react';
 import { render, fireEvent, screen } from '@testing-library/react';
 import AddForm from '../components/AddEvent.jsx';
 import '@testing-library/jest-dom';
-import moment from 'moment';
 
+
+/**
+ * Tests validation and various characteristics of the add event form
+ */
 describe('Add Event Form', () => {
 
     let props;
