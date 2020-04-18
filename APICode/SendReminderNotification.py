@@ -21,6 +21,9 @@ msgClient = boto3.client('sns')
 dynamodb = boto3.resource('dynamodb')
 dynamoTable = dynamodb.Table('UserNotificationData')
 
+TWILIO_SMS_URL = "https://api.twilio.com/2010-04-01/Accounts/{}/Messages.json"
+TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN")
 
 ##
 #Gets the notifications to be sent from the db, compares the times of when a notification should be sent to the current time.
@@ -98,15 +101,33 @@ def sendEmails(emailsList):
 ## 
 def sendTexts(phonesList):
 
-    #Using AWS SNS, send a text message to all recipients in the text message list pass in
+    #Using AWS SNS, send a text message to all recipients in the text message list passed in
     for i in range(len(phonesList)):
-        phoneNumber = '1'+phonesList[i]['phoneNumber']
+        phoneNumber = '1'+phonesList[i]['phoneNumber'].replace('-','')
+        print(phoneNumber)
         message = 'Event Reminder! ' + phonesList[i]['eventTitle'] + ' Is on ' + phonesList[i]['eventDate']
-        msgClient.publish(
-            PhoneNumber=phoneNumber,
-            Message=message
-        )
+      
+        #Build twilio data    
+        populated_url = TWILIO_SMS_URL.format(TWILIO_ACCOUNT_SID)
+        post_params = {"To": phoneNumber, "From": '+12184613855', "Body": message}
+      
+        data = parse.urlencode(post_params).encode()
+        req = request.Request(populated_url)
         
+        #Add our authentication data to the request headers we plan on invoking the twilio api with
+        authentication = "{}:{}".format(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+        base64string = base64.b64encode(authentication.encode('utf-8'))
+        req.add_header("Authorization", "Basic %s" % base64string.decode('ascii'))
+        
+        try:
+            # perform HTTP POST request
+            with request.urlopen(req, data) as f:
+                print("Twilio returned {}".format(str(f.read().decode('utf-8'))))
+        except Exception as e:
+            # something went wrong!
+            return e
+        
+        #Delete the notification data from the DB once it has been sent
         response = dynamoTable.delete_item(
             Key={
                 'notificationID': phonesList[i]['notificationID']
