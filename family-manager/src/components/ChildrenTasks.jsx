@@ -137,7 +137,6 @@ function ChildrenTasks(props){
      */
     let isSharedUser = (type, fireDocId) => {
         if(type===2){
-            console.log("User is a shared user");
             setFireDocID(fireDocId);
             childService.fetchUserData(true, email, loadData, fireDocId);
         }

@@ -62,7 +62,6 @@ class ShoppingList extends Component {
 
             })
             .catch((error) => {
-                console.log("Error Getting Documents! " + error);
             });
     }
 
@@ -82,11 +81,9 @@ class ShoppingList extends Component {
                         let returnedData = doc.data().shoppingList;
                         this.setState({ items: returnedData });
                     } else {
-                        console.log('Counldnt find user data');
                     }
                 })
                 .catch((error) => {
-                    console.log("error fetching existing user data! " + error);
                 })
         } else {
             //Check to see if the user is included in any shared calendar
@@ -100,7 +97,6 @@ class ShoppingList extends Component {
                     callback(true, null);
                 })
                 .catch((error) => {
-                    console.log("Error Getting Documents! " + error);
                 });
         }
     }
@@ -206,7 +202,6 @@ class ShoppingList extends Component {
 
         if (this.state.items.length > 0) {
             itemCB = this.state.items.map((item) => {
-                console.log("ItemCB: ", this.state.items);
                 return <DisplayItem key={item.item} item={item.item} completed={item.completed} handleChange={this.handleCBChange} />
             });
         }
