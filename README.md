@@ -18,5 +18,5 @@ All of our firebase calls involved AJAX as well.
 ### Testing
 Ensure npm install has been executed first.<br>
 To run unit tests: npm run test<br>
-To run automation tests: npm run cypress
+To run automation tests: npm run cypress, the automation test suite must be executed twice, once to login, and once to run the tests.
 
