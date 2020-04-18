@@ -5,7 +5,6 @@ import firebase from "../firebase"
 import "./shoppingList.css"
 import moment from 'moment';
 import MomentUtils from '@date-io/moment';
-
 import {
     MuiPickersUtilsProvider, DatePicker
   } from '@material-ui/pickers';
@@ -33,6 +32,9 @@ import {
   import ListIcon from '@material-ui/icons/List';
 
 
+  /**
+   * CSS styles
+   */
   const useStyles = makeStyles((theme) => ({
     root: {
         margin: 0,
@@ -91,15 +93,20 @@ function ChildrenTasks(props){
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('xs'));
 
-    // When page loads check if user exists, check if user is a child
+    /**
+     * When page loads check if user exists, check if user is a child
+     */
     useEffect(() => {
         verifyUser.checkIfUserExists(userExists, email);
         verifyUser.checkIfUserIsChild(childStatus, email);
         
       },[]);
 
-    
-    // if user exists update firedoc id and load the data from the db
+    /**
+     * if user exists update firedoc id and load the data from the db
+     * @param {userExists} e 
+     * @param {firebase ID} fireDocId 
+     */
     let userExists = (e, fireDocId) => {
         if (e) {
             setFireDocID(fireDocId );
@@ -113,14 +120,21 @@ function ChildrenTasks(props){
         }
     } 
 
-    // realtime data checking. If a new change is pinged by
-    // firebase then a new update happens without page refresh
+    /**
+     * realtime data checking. If a new change is pinged by
+     * firebase then a new update happens without page refresh
+     * @param {new chores} update 
+     */
     let rtUpdate = (update) => {
         setChildTask(update.childrenTasks);
         childSort(update.childrenTasks);
     }
 
-    // if user is a shared user update firedoc id
+    /**
+     * if user is a shared user update firedoc id
+     * @param {account type} type 
+     * @param {firebase ID} fireDocId 
+     */
     let isSharedUser = (type, fireDocId) => {
         if(type===2){
             console.log("User is a shared user");
@@ -129,7 +143,10 @@ function ChildrenTasks(props){
         }
     }
 
-    // callback: load data from database
+    /**
+     * callback: load data from database
+     * @param {data from DB} info 
+     */
     let loadData = (info) => {
         setChildTask(info.childrenTasks);
         childSort(info.childrenTasks);
@@ -137,7 +154,11 @@ function ChildrenTasks(props){
         setMasterUser(info.isMasterUser);
     }
 
-    // callback: T/F for status of child
+    
+    /**
+     * callback: T/F for status of child
+     * @param {isChild} status 
+     */
     let childStatus = (status) => {
         setChildUser(status);
     }
@@ -145,7 +166,7 @@ function ChildrenTasks(props){
     /**
      * Populates dropdown list with children for the
      * parent to pick
-     * @param {*} props 
+     * @param {child} props 
      * @returns <option>Child</option>
      */
     function listchild(props) {
@@ -184,7 +205,10 @@ function ChildrenTasks(props){
         handleClose()
     }
 
-    // saves form data to firebase after it passes validation
+    /**
+     * saves form data to firebase after it passes validation
+     * @param {*} data 
+     */
     let submitToDB = (data) =>{
         const db = firebase.firestore();
         db.collection("UserCalendarData").doc(fireDocId).update({
@@ -210,23 +234,32 @@ function ChildrenTasks(props){
         return setChildTask(newArr);
     }
 
-
+    /**
+     * Opens dialog
+     */
     const handleClickOpen = () => {
         setOpen(true);
     };
 
+    /**
+     * Closes dialog
+     */
     const handleClose = () => {
         setOpen(false);
     };
 
 
+    /**
+     * Filter out only chores that belong to this child
+     * @param {chores} tasks 
+     */
     let childSort = (tasks) => {
         let mine = tasks.filter(chore => chore.email === email)
         return setMyChores(mine);
     }
 
     
-
+    // populate dropdown list with children
     let l = children.map((i, index) => listchild({name: i, key:index}));
     let childList;
     
@@ -240,13 +273,12 @@ function ChildrenTasks(props){
 
   
     
-    return(
-        
+    return( 
         <div>
+            {/** If parent user - show parent expansion panel */}
             { isMasterUser ? 
            (   
             <Box className="box" >
-
                 <ExpansionPanel elevation={0} >
                 <ExpansionPanelSummary
                 expandIcon={<ExpandMoreIcon />}
@@ -271,9 +303,6 @@ function ChildrenTasks(props){
                     </IconButton>
                     </Tooltip>
                </div>
-                
-         
-                
                 </ExpansionPanelSummary>
                 <ExpansionPanelDetails>
             <Box className="inner-box">
@@ -285,19 +314,14 @@ function ChildrenTasks(props){
 
                 </Box>
 
-
-
            )
                 :
                 null
             }
 
-            {
+            {   /** If Child users - display child chore expansion panel */
                 isChildUser ? 
-             
                ( 
-               
-               
                <Box className="box">
              
                 <ExpansionPanel elevation={0} >
@@ -325,15 +349,11 @@ function ChildrenTasks(props){
             </ExpansionPanelDetails>
           </ExpansionPanel>
             </Box>
-               
-               
-               
                 )
-                
                 : null
             }
       
-
+            {/** Form for adding new chore */}
             <Dialog 
              open={open}
              onClose={() => setOpen(false)}
@@ -409,8 +429,6 @@ function ChildrenTasks(props){
                 </DialogActions>
             </Dialog>
         </div>
-
-        
     )
 }
 
