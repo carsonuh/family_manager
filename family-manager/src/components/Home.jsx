@@ -6,10 +6,10 @@ import HomeView from "./HomeView"
 /**
  * Home Component, Displays the home page and calendar component
  */
-    function Home() {
-    
-        const [user, setUser] = useState(null);
-    
+function Home() {
+
+    const [user, setUser] = useState(null);
+
     /**
      * Checks the users previous session state to see if they were logged in
      * If they were, keep them logged in
@@ -28,7 +28,7 @@ import HomeView from "./HomeView"
     function login() {
         return auth.signInWithPopup(provider)
             .then((result) => {
-               setUser(result.user);
+                setUser(result.user);
             });
     }
 
@@ -36,10 +36,10 @@ import HomeView from "./HomeView"
      * Executes a logout with firebase auth
      */
     let logout = () => {
-       return auth.signOut()
+        return auth.signOut()
             .then(() => {
-               setUser(null);
-               refresh();
+                setUser(null);
+                refresh();
             });
     }
 
@@ -48,22 +48,23 @@ import HomeView from "./HomeView"
     }
 
     /**
-     * Renders a blank calendar when not logged in, renders calendar with user data when logged in
+     * Renders home page with login button when not logged in,
+     * renders calendar with logout button when logged in
      */
-        return (
-            <div>
-                {user !== null ?
-                    <div>
-                        <Head loginAction={logout} login={true} userEmail={user.email} usersName={user.displayName} />
-                    </div>
-                        :
-                    <div>
-                        <Head loginAction={login} login={false} />
-                        <HomeView />
-                    </div>
-                }   
-            </div>
-        )
+    return (
+        <div>
+            {user !== null ?
+                <div>
+                    <Head loginAction={logout} login={true} userEmail={user.email} usersName={user.displayName} />
+                </div>
+                :
+                <div>
+                    <Head loginAction={login} login={false} />
+                    <HomeView />
+                </div>
+            }
+        </div>
+    )
 }
 
 export default Home;
