@@ -9,6 +9,12 @@ End to End Testing: We added tests via Cypress
 To install: npm install<br>
 To run: npm run start
 
+### AJAX Features
+Please see the following components for AJAX features via Fetch:<br>
+Notification Service<br>
+Weather<br>
+All of our firebase calls involved AJAX as well.
+
 ### Testing
 Ensure npm install has been executed first.<br>
 To run unit tests: npm run test<br>
