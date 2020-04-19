@@ -4,7 +4,6 @@ Please see the about page of the app, located under the menu. For additional ins
 
 ### Extra credit attempted
 Hosting: The project is deployed to Firebase<br>
-End to End Testing: We added tests via Cypress
 
 To install: npm install<br>
 To run: npm run start
