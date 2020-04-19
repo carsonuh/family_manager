@@ -164,7 +164,7 @@ export default function Guide() {
                                 <li>Additional event information: The weather at and commute time to an event</li>
                                 <li>A notification service to recieve SMS and Email event reminders</li>
                                 <li>A unified shopping list, where all users can add items to be bought</li>
-                                <li>The ability to assign chores to children that the calendars been shared with</li>
+                                <li>The ability to assign chores to children that the calendar has been shared with</li>
                             </ul>
                         </div>
                     </Typography>
