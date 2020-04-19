@@ -16,6 +16,7 @@ import NotificationService from '../Services/NotificationService'
 import MuiAlert from '@material-ui/lab/Alert';
 import Snackbar from '@material-ui/core/Snackbar';
 
+//Component local styles
 const useStyles = makeStyles({
     root: {
         margin: 0,
@@ -29,21 +30,33 @@ const useStyles = makeStyles({
     },
 })
 
+/**
+ * When open, this class is the reminder signup form
+ * @param {open/close the form} toggleReminderForm
+ * @param {the array of events} events 
+ */
 function Reminders({toggleReminderForm, events}) {
+
+    //Initialize state and styles for the component
     const [open, setOpen] = React.useState(true);
     const theme = useTheme();
     const classes = useStyles();
-    const fullScreen = useMediaQuery(theme.breakpoints.down('xs'));
     let [reminderData, setReminderData] = React.useState({ phoneNumber: "", email: "", eventTitle: "", reminderDateOffset: "", eventDate: "" });
     let [userEvents, setUserEvents] = React.useState([...events]);
     let [openSnackbar, setOpenSnackbar] = React.useState(false)
     let [alertMessage, setAlertMessage] = React.useState({message: "", severity: ""});
 
+    //The dialog becomes a full screen dialog when screen is <= XS
+    const fullScreen = useMediaQuery(theme.breakpoints.down('xs'));
 
+    //On loading of the component filter out the events that have passed from the array
     useEffect(() => {
         filterEvents();
     }, []);
 
+    /**
+     * Filters out the events that have passed from the array of events
+     */
     function filterEvents() {
         let eventsTemp = [...events];
         let eventsFinal = [];
@@ -56,15 +69,18 @@ function Reminders({toggleReminderForm, events}) {
                 eventsFinal.push(eventsTemp[i]);
             }
         }
-
         setUserEvents(eventsFinal);
     }
 
+    /**
+     * When close is clicked, close the dialog and update the boolean
+     */
     const handleClose = () => {
         toggleReminderForm();
         setOpen(false)
     }
 
+    //The 4 methods below update the saved state when the various fields are updated
     let handleReminderEmail = email => {
         let reminderD = { ...reminderData };
         reminderD.email = email.target.value;
@@ -89,14 +105,28 @@ function Reminders({toggleReminderForm, events}) {
         setReminderData(reminderD);
     }
 
+    /**
+     * Submits a notification signup to the API upon receiving valid ata
+     */
     const submitNotification = () => {
 
+        //Build a local object of event data to send to the notification signup service
         let reminderDataToSend = { ...reminderData };
         let tempDate = reminderDataToSend.eventTitle.start;
+
+        //Reformat the date from a moment object to a readable format
         let finalDate = moment(tempDate).format('MM/DD/YYYY') + " At " + moment(tempDate).format('h:mm A');
         reminderDataToSend.eventTitle = reminderData.eventTitle.title;
         reminderDataToSend.eventDate = finalDate;
 
+        //If the user didn't select an event throw an alert
+        if (!reminderDataToSend.eventTitle) {
+            setAlertMessage({message: "Invalid Title", severity: "error"});
+            setOpenSnackbar(true);
+            return;
+        }
+
+        //If the user entered both an email and phone number valid them and send the data to the service
         if (reminderDataToSend.email.length > 0 && reminderDataToSend.phoneNumber.length > 0 && reminderDataToSend.reminderDateOffset) {
             if (!isValidPhone(reminderDataToSend.phoneNumber)) {
                 setAlertMessage({message: "Invalid Phone Number", severity: "error"});
@@ -110,7 +140,7 @@ function Reminders({toggleReminderForm, events}) {
                 return
             }
 
-            NotificationService.forwardNotificationSignup(reminderDataToSend);
+            NotificationService.forwardNotificationSignup(reminderDataToSend, notificationResponse);
         } else if (reminderDataToSend.email.length > 0 && reminderDataToSend.reminderDateOffset) {
             if (isValidEmail(reminderDataToSend.email)) {
                 NotificationService.forwardNotificationSignup(reminderDataToSend, notificationResponse);
@@ -121,19 +151,24 @@ function Reminders({toggleReminderForm, events}) {
             }
         } else if (reminderDataToSend.phoneNumber.length > 0 && reminderDataToSend.reminderDateOffset) {
             if (isValidPhone(reminderDataToSend.phoneNumber)) {
-                NotificationService.forwardNotificationSignup(reminderDataToSend);
+                NotificationService.forwardNotificationSignup(reminderDataToSend, notificationResponse);
             } else {
                 setAlertMessage({message: "Invalid Phone Number", severity: "error"});
                 setOpenSnackbar(true);
                 return;
             }
         } else {
+            //If the user didn't enter anything throw an alert
             setAlertMessage({message: "Select your event, when you want the reminder, email, phone number, or both!", severity: "error"});
             setOpenSnackbar(true);
             return;
         }
     }
 
+    /**
+     * Callback function executed after notificaton signup API has been called
+     * @param {API call response} response 
+     */
     const notificationResponse = (response) => {
         if (response.status === 200) {
             setAlertMessage({message: "Reminder Submitted!", severity: "success"});
@@ -145,6 +180,11 @@ function Reminders({toggleReminderForm, events}) {
         }
     }
 
+    /**
+     * Validates the users email based on the regex string below
+     * The regex string was sourced from: https://emailregex.com/
+     * @param {user's email} email 
+     */
     function isValidEmail(email) {
         // eslint-disable-next-line
         if (/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email)) {
@@ -153,6 +193,11 @@ function Reminders({toggleReminderForm, events}) {
         return false;
     }
 
+    /**
+     * Validates the users phone number based on the regex string below
+     * The regex string was sourced from: https://stackoverflow.com/questions/123559/how-to-validate-phone-numbers-using-regex
+     * @param {user's phone phoneNumber} phoneNumber 
+     */
     function isValidPhone(phoneNumber) {
         if (/^[1-9]\d{2}-\d{3}-\d{4}/.test(phoneNumber)) {
             return true;
@@ -160,6 +205,7 @@ function Reminders({toggleReminderForm, events}) {
         return false;
     }
 
+    //Closes the alert if the user clicks on the 'X'
     const handleSnackbarClose = (event, reason) => {
         if (reason === 'clickaway') {
             return;
@@ -168,11 +214,12 @@ function Reminders({toggleReminderForm, events}) {
         setOpenSnackbar(false);
     };
 
+    //Clears the alert form, this is executed after a successful signup
     const clearForm = () => {
         setReminderData({phoneNumber: "", email: "", eventTitle: "", reminderDateOffset: "", eventDate: ""})
     }
 
-
+    //Renders an alert popup based on the props passed in
     function Alert(props) {
         return <MuiAlert elevation={6} variant="filled" {...props} />;
     }
@@ -182,22 +229,23 @@ function Reminders({toggleReminderForm, events}) {
             <Dialog open={open} onClose={handleClose} fullScreen={fullScreen} disableBackdropClick>
                 <DialogTitle className={classes.title}>
                     Reminder Signup
-                    <IconButton className={classes.closeButton} onClick={handleClose}>
+                    <IconButton aria-label="close" className={classes.closeButton} onClick={handleClose}>
                         <CloseIcon />
                     </IconButton>
                 </DialogTitle>
                 <DialogContent style={{justifyContent: 'center'}}>
                 <FormControl fullWidth style={{minWidth: '150px'}}>
-                         <InputLabel id="demo-simple-select-label">Event</InputLabel>
+                        <InputLabel id="demo-simple-select-label">Event</InputLabel>
                         <Select
                             labelId="demosimple-select-label"
                             id="demosimple-select"
                             value={reminderData.eventTitle}
                             onChange={handleEventTitle}
+                            data-testid = "eventSelect"
                         > 
-                            {userEvents.map((event) => (
-                                <MenuItem key={event.id} value={event}>{event.title}</MenuItem>
-                            ))}
+                        {userEvents.map((event) => (
+                            <MenuItem key={event.id} value={event}>{event.title}</MenuItem>
+                        ))}
                         </Select>
                     </FormControl>
                         <TextField 
@@ -207,6 +255,7 @@ function Reminders({toggleReminderForm, events}) {
                             style={{minWidth: '150px', marginTop: '10px'}}
                             fullWidth
                             placeholder="sample@sample.com"
+                            inputProps={{"data-testid": "emailInput"}}
                         />
                     <div>
                         <TextField 
@@ -216,6 +265,7 @@ function Reminders({toggleReminderForm, events}) {
                             style={{minWidth: '150px', marginTop: '10px'}}
                             fullWidth
                             placeholder="XXX-XXX-XXXX"
+                            inputProps={{"data-testid": "phoneInput"}}
                         />    
                     </div>
                     <FormControl fullWidth style={{minWidth: '150px', marginTop: '10px'}}>
@@ -225,6 +275,7 @@ function Reminders({toggleReminderForm, events}) {
                             id="demo-simple-select"
                             value={reminderData.reminderDateOffset}
                             onChange={handleTimeOffset}
+                            data-testid = "timeSelect"
                         >
                             <MenuItem value={1}>10 Minutes</MenuItem>
                             <MenuItem value={2}>1 Hour</MenuItem>
@@ -233,14 +284,13 @@ function Reminders({toggleReminderForm, events}) {
                     </FormControl>
                 </DialogContent>
                 <DialogActions style={{marginTop:'20px'}}>
-                <Button 
-                                variant="outlined" 
-                                color="secondary" 
-                                onClick={submitNotification}>
-                                    Submit
-                            </Button>
+                    <Button 
+                        variant="outlined" 
+                        color="secondary" 
+                        onClick={submitNotification}>
+                        Submit
+                    </Button>
                 </DialogActions>
-                
                 <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleSnackbarClose}>
                     <Alert onClose={handleSnackbarClose} severity={alertMessage.severity}>
                         {alertMessage.message}

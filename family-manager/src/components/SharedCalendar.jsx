@@ -23,10 +23,9 @@ import Snackbar from '@material-ui/core/Snackbar';
 //setup time localizer
 const localizer = momentLocalizer(moment);
 
-
+//Styles for the calendar and buttons
 const CalendarStyles = {
 
-    
     calendarContainer: {
         margin: "auto",
         marginTop: "10px",
@@ -41,6 +40,7 @@ const CalendarStyles = {
     }
 }
 
+//Action icons for the spinner wheeel
 let actions = [
     { icon: <CalendarTodayIcon />, name: 'Add Event', operation: 'AddEvent' },
     { icon: <NotificationsIcon />, name: 'Reminders', operation: 'AddRem' },
@@ -54,12 +54,9 @@ let actions = [
  */
 class SharedCalendar extends Component {
 
-
-
     constructor(props) {
         super(props);
 
-        //Initialize usersName and userEmail via props passed in from the parent
         this.state = {
             user: null,
             usersName: this.props.usersName,
@@ -108,9 +105,11 @@ class SharedCalendar extends Component {
         this.setState({view: this.props.view})
     }
 
-    
-
-
+    /**
+     * Calls the shared calendar service to determine whether a user exists
+     * If they do, fetch their calendar data, if not, create a new entry
+     * in the DB for them
+     */
     userExists = (e, fireDocId) => {
         let userEmail = this.state.userEmail;
         if (e) {
@@ -122,11 +121,19 @@ class SharedCalendar extends Component {
         }
     }
 
+    /**
+     * Loads already existing users data into the local state, events
+     * whose visibility isn't public are removed from the array
+     */
     loadData = (returnedUserData) => {
         let eventData = returnedUserData.returnedData.filter(event => event.visibility === "public" || event.visibility === this.state.userEmail);
         this.setState({ events: eventData, masterUser: returnedUserData.isMasterUser });
     }
 
+    /**
+     * Calls the shared calendar service to determine if a user is completely new or if they
+     * have a calendar shared with them.
+     */
     newUser = (userType, fireDocId) => {
         if (userType === 1) {
             alert("Welcome, Start by adding some data to the calendar");
@@ -138,6 +145,10 @@ class SharedCalendar extends Component {
         }
     }
 
+    /**
+     * Loads shared users data into the calendar, also filters out events that 
+     * don't have a visbility of public
+     */
     loadData2 = (returnedUserData) => {
         this.state.loaded()
         if (returnedUserData.type === 1) {
@@ -148,6 +159,10 @@ class SharedCalendar extends Component {
         }
     }
 
+    /**
+     * Removes actions a child cannot do if the user is 
+     * determined to be a child
+     */
     isChild = (returnedData) => {
         if (returnedData) {
             this.setState({ isChild: true });
@@ -163,6 +178,7 @@ class SharedCalendar extends Component {
      */
     updateStorage(eventData) {
 
+        //Create a new object with the new event's data
         let newEvent = {
             title: eventData.title,
             start: eventData.start,
@@ -174,10 +190,13 @@ class SharedCalendar extends Component {
             endZip: eventData.endZip
         }
 
+        //Add it to the event array in the DB
         const db = firebase.firestore();
         db.collection("UserCalendarData").doc(this.state.fireDocId).update({
             events: firebase.firestore.FieldValue.arrayUnion(newEvent)
         });
+
+        //Display a popup to the user telling them they're event has been added
         this.setState({alert: {message: `${newEvent.title} has been added`, severity: "success"}, openSnackbar:true});
     }
 
@@ -186,6 +205,8 @@ class SharedCalendar extends Component {
      * updates local array of events and sends an update to the DB
      */
     editEventInStorage = (editedEvent) => {
+
+        //Create an event update with the updated event's data
         let updatedEvent = {
             title: editedEvent.eventTitle,
             start: new Date(editedEvent.eventStart),
@@ -199,10 +220,18 @@ class SharedCalendar extends Component {
 
         //Store the events in a local array and then update the event that was modified
         let eventArray = [...this.state.events];
+
+        //Remove the updated event from the array
         let eventArrayFiltered = eventArray.filter(event => event.id != updatedEvent.id);
         let eventToRemove = eventArray.find(event => event.id == updatedEvent.id);
-        eventArrayFiltered.push(updatedEvent)
+
+        //Add the updated event to the array
+        eventArrayFiltered.push(updatedEvent);
+
+        //Update the calendars local event array
         this.setState({ events: eventArrayFiltered });
+
+        //Push the changes to the DB
         const db = firebase.firestore();
         db.collection("UserCalendarData").doc(this.state.fireDocId).update({
             events: firebase.firestore.FieldValue.arrayRemove(eventToRemove)
@@ -212,15 +241,18 @@ class SharedCalendar extends Component {
             events: firebase.firestore.FieldValue.arrayUnion(updatedEvent)
         });
 
+        //Close the edit form and display a message to the user telling them they're event has been updated
         this.setState({ showEditForm: false });
         this.setState({alert: {message: `${updatedEvent.title} has been updated!`, severity: "success"}, openSnackbar:true});
     }
 
     /**
-     * Callend when the user clicks delete when editing an event,
+     * Called when the user clicks delete when editing an event,
      * updates local array of events and sends an update to the DB
      */
     deleteEventInStorage = (eventToDelete) => {
+
+        //Create a new object for the event to delete
         let updatedEvent = {
             title: eventToDelete.eventTitle,
             start: eventToDelete.eventStart,
@@ -234,11 +266,13 @@ class SharedCalendar extends Component {
         eventArray.splice(eventArray.indexOf(eventToRemove), 1);
         this.setState({ events: eventArray });
 
+        //Remove the event from the DB
         const db = firebase.firestore();
         db.collection("UserCalendarData").doc(this.state.fireDocId).update({
             events: firebase.firestore.FieldValue.arrayRemove(eventToRemove)
         });
 
+        //Close the edit form and display a message to the user telling they're event has been deleted
         this.setState({ showEditForm: false });
         this.setState({alert: {message: `${updatedEvent.title} has been deleted!`, severity: "success"}, openSnackbar:true});
 
@@ -251,7 +285,11 @@ class SharedCalendar extends Component {
      */
 
     addEvent = (newEventData) => {
+
+        //Parse the new event's data into an object
         const newEvent = { ...newEventData };
+
+        //Create local variables to seperate the data
         let title = newEvent.eventTitle;
         let start = new Date(newEvent.eventStartDate);
         let end = new Date(newEvent.eventEndDate);
@@ -260,6 +298,8 @@ class SharedCalendar extends Component {
         let id = Math.floor(Math.random() * 1000000);
         let startZip = newEventData.eventStartZip;
         let endZip = newEventData.eventEndZip;
+
+        //Update the local event array with the new event
         this.setState({
             events: [
                 ...this.state.events,
@@ -275,28 +315,19 @@ class SharedCalendar extends Component {
                 }
             ]
         });
+
+        //Send the data to the updateStorage() method to get added to the DB
         this.updateStorage({ title, start, end, id, visibility, owner, startZip, endZip });
+
+        //Close the form
         this.setState({showEventForm: false})
     }
 
-    shareCalendar = (e) => {
-        e.preventDefault();
-        const db = firebase.firestore();
-        let emailToShare = this.state.emailToShare;
-        let isChild = this.state.childChecked;
-        db.collection("UserCalendarData").doc(this.state.fireDocId).update({
-            sharedUsers: firebase.firestore.FieldValue.arrayUnion(emailToShare)
-        });
-
-        //If the added email was a child, add them to the child array in the db
-        if (isChild) {
-            db.collection("UserCalendarData").doc(this.state.fireDocId).update({
-                children: firebase.firestore.FieldValue.arrayUnion(emailToShare)
-            })
-        }
-    }
-
+    //Called when a user clicks on an event
     handleShow(event) {
+
+        //Updates state variables to show which event the user clicked
+        //and opens the edit form
         this.setState({
             userEventTitle: event.title.toString(),
             userEventStart: event.start.toString(),
@@ -310,13 +341,13 @@ class SharedCalendar extends Component {
         });
     }
 
+    //The below methods are simply for toggling forms open/close
     handleClose = () => this.setState({ showEditForm: false });
     toggleShareField = () => this.setState({ showShareField: !this.state.showShareField });
     handleEmailShare = (e) => this.setState({ emailToShare: e.target.value })
     handleChildChecked = () => this.setState({ childChecked: !this.state.childChecked });
     toggleAddEventForm = () => this.setState({ showEventForm: !this.state.showEventForm });
     toggleReminderForm = () => this.setState({showReminderForm: false});
-
     toggleSpeedClose = () => this.setState({ open: false });
     toggleSpeedOpen = () => this.setState({ open: true });
 
@@ -327,7 +358,12 @@ class SharedCalendar extends Component {
         this.setState({openSnackbar: false});
     };
 
-
+    /**
+     * Called when a user clicks on an action in the speed dial
+     * It opens the requested form
+     * @param {not used} e 
+     * @param {action clicked} operation 
+     */
     handleSpeed(e, operation) {
         if (operation === "AddEvent") {
             this.setState({showEventForm: true})
@@ -337,6 +373,9 @@ class SharedCalendar extends Component {
         this.setState({open: false});
     }
 
+    /**
+     * Removes the add event action from the array if a user is a child
+     */
     filterActions() {
         if (this.state.isChild === true) {
             actions.shift();
@@ -445,7 +484,7 @@ class SharedCalendar extends Component {
                     </Alert>
                 </Snackbar>
             </div>
-        </div >
+        </div>
         )
     }
 }

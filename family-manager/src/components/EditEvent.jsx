@@ -196,7 +196,6 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
 
         //Make sure the zipcode is a five digit number
         if (/^\d{5}$/.test(zipcode)) {
-
             //Us the usZips library to check to see that the zipcode exists
             if (usZips.get(zipcode)) {
                 return true;
@@ -335,6 +334,7 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                     <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils}>
                         <div>
                             <DatePicker
+                                autoOk
                                 variant="inline"
                                 format="MM/DD/YYYY"
                                 margin="normal"
@@ -358,6 +358,7 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                         </div>
                         <div>
                             <DatePicker
+                                autoOk
                                 variant="inline"
                                 format="MM/DD/YYYY"
                                 margin="normal"
@@ -422,7 +423,7 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                         detailsMode === true ?
                             <div>{
                                 userEvent.endZip.length >= 5 ?
-                                    <div className={classes.weather}>
+                                    <div id="weather" className={classes.weather}>
                                         <Weather
                                             zipcode={userEventData.endZip}
 
@@ -439,7 +440,7 @@ function EditEvent({ userEventData, editCallback, deleteCallback, closeCallback,
                         {
 
                             detailsMode === true && mapVisible === true ?
-                                <div>
+                                <div id="gMap" >
                                     <GMap startZip={userEvent.startZip} endZip={userEvent.endZip} setTime={setCTime}/>
                                 </div>
                                 :

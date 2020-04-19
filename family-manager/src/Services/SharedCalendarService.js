@@ -1,6 +1,10 @@
 import firebase from '../firebase.js';
 
-
+/**
+ * This class acts as a service layer between the firebase cloud storage
+ * and the front end, it supports various operations to fetch data from
+ * the DB
+ */
 export default class SharedCalendarService {
 
     /**
@@ -45,7 +49,6 @@ export default class SharedCalendarService {
     fetchUserData(userExists, callback, email, fireDocId) {
         //If a user exists pull their event data from the DB
         if (userExists) {
-            console.log('user exists, fetching data');
             const db = firebase.firestore();
             db.collection("UserCalendarData").doc(fireDocId)
                 .get()
@@ -58,8 +61,6 @@ export default class SharedCalendarService {
                             returnedData[i].start = returnedData[i].start.toDate();
                             returnedData[i].end = returnedData[i].end.toDate();
                         }
-
-                        console.log(returnedData)
 
                         let isMasterUser = doc.data().masterUser === email ? true : false;
                         callback({returnedData, isMasterUser});
@@ -75,6 +76,11 @@ export default class SharedCalendarService {
         }
     }
 
+    /**
+     * Queries the DB to see if the current user is in any shared calendar field
+     * @param {callback to execute with data returned} callback 
+     * @param {user's email} email 
+     */
     checkSharedUser(callback, email) {
         //Check to see if the user is included in any shared calendar
          //Connect to the firebase DB
@@ -99,6 +105,15 @@ export default class SharedCalendarService {
              });
     }
 
+    /**
+     * If a user is completely new, a new DB entry is created for them.
+     * If an existing calendar has been shared with them, that data
+     * will be fetched
+     * @param {1 or 2 depending on if the user is new or shared} userType 
+     * @param {callback to execute with returned data} callback 
+     * @param {user object containing the users email and name} user 
+     * @param {the document id in the database} fireDocId 
+     */
     loadNewOrSharedUser(userType, callback, user, fireDocId) {
         if (userType === 1) {
             //This block is executed if it's a users first time logging in
@@ -116,7 +131,6 @@ export default class SharedCalendarService {
                 childrenTasks: [],
                 shoppingList: []
             }).then((docRef) => {
-                // this.setState({ fireDocId: docRef.id, masterUser: true });
                 callback({fireDocId: docRef.id, masterUser: true, type: 1})
             })
             .catch((error) => {
@@ -148,6 +162,12 @@ export default class SharedCalendarService {
         }
     }
 
+    /**
+     * Queries the DB to determine if the users email is included
+     * in the children array, if they are, it means they're a child
+     * @param {callback to execute with the returned data} callback 
+     * @param {the users email} userEmail 
+     */
     checkIfUserIsChild(callback, userEmail) {
 
         const db = firebase.firestore();

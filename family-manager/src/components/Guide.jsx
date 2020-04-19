@@ -154,7 +154,7 @@ export default function Guide() {
                     </Typography>
                     <Typography variant="h6" component="div">
                         <div style={{ width: window.innerWidth < 600 ? "95%" : "50%", margin: "0 auto", textAlign: 'left', marginTop: '20px' }}>
-                            The app has four main features:
+                            The app has five main features:
                         </div>
                     </Typography>
                     <Typography component="div">
@@ -346,7 +346,7 @@ export default function Guide() {
                                     For testing we used:
                                     <ul style={{ paddingLeft: '24px', marginTop: '5px' }}>
                                         <li>React-Testing-Library for unit tests: "npm run test"</li>
-                                        <li>Cypress for automation testing: "npm run cypress"</li>
+                                        <li>Cypress for automation testing: "npm run cypress", run the main test suite twice. Once to login, and another to run the tests</li>
                                         <li><b>Make Sure "npm install" has been run first</b></li>
                                     </ul>
                                     <br />
