@@ -29,7 +29,15 @@ function Weather({ zipcode }) {
         //If the weather hasn't already been fetched, fetch it
         if (!weatherFetched) {
             let zip = parseInt(zipCode);
-            let url = `http://api.openweathermap.org/data/2.5/weather?zip=${zip},us&units=imperial&APPID=b1630a5c4e2d490b0aaacab53d1be8f3`;
+
+            let url = '';
+
+            if (window.location.protocol === 'http') {
+                url = `http://api.openweathermap.org/data/2.5/weather?zip=${zip},us&units=imperial&APPID=b1630a5c4e2d490b0aaacab53d1be8f3`;
+            } else {
+                url = `https://api.openweathermap.org/data/2.5/weather?zip=${zip},us&units=imperial&APPID=b1630a5c4e2d490b0aaacab53d1be8f3`;
+            }
+
             fetch(url)
                 .then((response) => {
                     return response.json()

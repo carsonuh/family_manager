@@ -53,36 +53,4 @@ describe("Shopping List", () => {
         fireEvent.change(input, { target: { value: "item" } });
         expect(input.value).toBe("item")
     })
-
-    it("When a new item is added", () => {
-        let addBtn = screen.getByLabelText("add");
-        let input = screen.getByTestId("itemInput");
-
-        // item text field should be empty
-        expect(input.value).toBe("");
-
-        // Adding text to item field
-        fireEvent.change(input, { target: { value: "cake" } });
-
-        // item field value should have been changed
-        expect(input.value).toBe("cake");
-
-
-        fireEvent.click(addBtn)
-
-    })
-
-    it("Trying to add an empty item", () => {
-        let input = screen.getByTestId("itemInput");
-
-        // item textfield is empty to begin
-        expect(input.value).toBe("");
-
-        // no change
-        fireEvent.change(input, { target: { value: "" } });
-
-        // item textfield should not have changed
-        expect(input.value).toBe("");
-    })
-
 })
